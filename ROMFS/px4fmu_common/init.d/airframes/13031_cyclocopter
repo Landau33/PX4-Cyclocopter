@@ -3,7 +3,7 @@
 # @name Cyclocopter
 #
 # @type Cyclocopter
-# @class VTOL
+# @class Copter
 #
 # @output Motor1 motor 1
 # @output Motor2 motor 2
@@ -14,4 +14,4 @@
 # @output Servo3 servo 3
 # @output Servo4 servo 4
 
-. ${R}etc/init.d/rc.vtol_defaults
+. ${R}etc/init.d/rc.cyclocopter_defaults
