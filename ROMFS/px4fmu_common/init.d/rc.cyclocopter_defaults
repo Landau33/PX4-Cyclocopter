@@ -5,9 +5,9 @@
 # NOTE: Script variables are declared/initialized/unset in the rcS script.
 #
 
-set VEHICLE_TYPE mc
+set VEHICLE_TYPE cyclocopter
 
-# MAV_TYPE_QUADROTOR 2
+# MAV_TYPE_CYCLOCOPTER 23
 param set-default MAV_TYPE 2
 
 if param compare IMU_GYRO_RATEMAX 400
