@@ -98,10 +98,10 @@ if(CONFIG_MODULES_VTOL_ATT_CONTROL)
 	)
 endif()
 
-if(CONFIG_MODULES_CYCLOCOPTER_ATT_CONTROL)
+if(CONFIG_MODULES_CC_ATT_CONTROL)
 	px4_add_romfs_files(
-		rc.cyclocopter_apps
-		rc.cyclocopter_defaults
+		rc.cc_apps
+		rc.cc_defaults
 	)
 endif()
 

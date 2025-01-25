@@ -9,7 +9,7 @@
 #
 control_allocator start
 
-cyclocopter_att_control start
+cc_att_control start
 
 mc_rate_control start
 mc_att_control start
