@@ -11,9 +11,9 @@ control_allocator start
 
 cyclocopter_att_control start
 
-mc_rate_control start cyclocopter
-mc_att_control start cyclocopter
-mc_pos_control start cyclocopter
+mc_rate_control start
+mc_att_control start
+mc_pos_control start
 mc_hover_thrust_estimator start
 
 
@@ -25,4 +25,4 @@ fi
 #
 # Start Land Detector.
 #
-land_detector start cyclocopter
+land_detector start
