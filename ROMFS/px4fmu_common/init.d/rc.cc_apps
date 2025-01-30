@@ -7,7 +7,7 @@
 #
 # Start Control Allocator
 #
-control_allocator start
+cc_control_allocator start
 
 cc_att_control start
 cc_rate_control start
