@@ -1,0 +1,12 @@
+menuconfig MODULES_CC_POS_CONTROL
+	bool "cc_pos_control"
+	default n
+	---help---
+		Enable support for mc_pos_control
+
+menuconfig USER_CC_POS_CONTROL
+	bool "cc_pos_control running as userspace module"
+	default y
+	depends on BOARD_PROTECTED && MODULES_CC_POS_CONTROL
+	---help---
+		Put cc_pos_control in userspace memory

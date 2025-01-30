@@ -10,12 +10,10 @@
 control_allocator start
 
 cc_att_control start
+cc_rate_control start
+cc_pos_control start
 
-mc_rate_control start
-mc_att_control start
-mc_pos_control start
 mc_hover_thrust_estimator start
-
 
 if param greater -s MC_AT_EN 0
 then
