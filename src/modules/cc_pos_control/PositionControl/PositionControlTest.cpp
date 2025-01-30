@@ -1,36 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (C) 2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 #include <gtest/gtest.h>
 #include <PositionControl.hpp>
 #include <px4_defines.h>
@@ -146,7 +113,7 @@ TEST_F(PositionControlBasicTest, TiltLimit)
 	EXPECT_GT(angle, 0.f);
 	EXPECT_LE(angle, .50001f);
 
-	_position_control.setTiltLimit(1.f);  // restore original
+	_position_control.setTiltLimit(1.f);  // 恢复原始值
 }
 
 TEST_F(PositionControlBasicTest, VelocityLimit)
@@ -161,31 +128,31 @@ TEST_F(PositionControlBasicTest, VelocityLimit)
 
 TEST_F(PositionControlBasicTest, PositionControlMaxThrustLimit)
 {
-	// Given a setpoint that drives the controller into vertical and horizontal saturation
+	// 给定一个将控制器驱动到垂直和水平饱和的设定点
 	Vector3f(10.f, 10.f, -10.f).copyTo(_input_setpoint.position);
 
-	// When you run it for one iteration
+	// 运行一次迭代
 	runController();
 	Vector3f thrust(_output_setpoint.thrust);
 
-	// Then the thrust vector length is limited by the maximum
+	// 推力向量长度由最大值限制
 	EXPECT_FLOAT_EQ(thrust.norm(), MAXIMUM_THRUST);
 
-	// Then the horizontal thrust is limited by its margin
+	// 水平推力由其裕度限制
 	EXPECT_FLOAT_EQ(thrust(0), HORIZONTAL_THRUST_MARGIN / sqrt(2.f));
 	EXPECT_FLOAT_EQ(thrust(1), HORIZONTAL_THRUST_MARGIN / sqrt(2.f));
 	EXPECT_FLOAT_EQ(thrust(2),
 			-sqrt(MAXIMUM_THRUST * MAXIMUM_THRUST - HORIZONTAL_THRUST_MARGIN * HORIZONTAL_THRUST_MARGIN));
 	thrust.print();
 
-	// Then the collective thrust is limited by the maximum
+	// 总推力由最大值限制
 	EXPECT_EQ(_attitude.thrust_body[0], 0.f);
 	EXPECT_EQ(_attitude.thrust_body[1], 0.f);
 	EXPECT_FLOAT_EQ(_attitude.thrust_body[2], -MAXIMUM_THRUST);
 
-	// Then the horizontal margin results in a tilt with the ratio of: horizontal margin / maximum thrust
+	// 水平裕度导致倾斜角度为：水平裕度 / 最大推力
 	EXPECT_FLOAT_EQ(_attitude.roll_body, asin((HORIZONTAL_THRUST_MARGIN / sqrt(2.f)) / MAXIMUM_THRUST));
-	// TODO: add this line back once attitude setpoint generation strategy does not align body yaw with heading all the time anymore
+	// TODO: 在姿态设定点生成策略不再总是将机体偏航角与航向对齐时，添加此行
 	// EXPECT_FLOAT_EQ(_attitude.pitch_body, -asin((HORIZONTAL_THRUST_MARGIN / sqrt(2.f)) / MAXIMUM_THRUST));
 }
 
@@ -219,13 +186,13 @@ TEST_F(PositionControlBasicTest, FailsafeInput)
 
 TEST_F(PositionControlBasicTest, IdleThrustInput)
 {
-	// High downwards acceleration to make sure there's no thrust
+	// 高向下的加速度以确保没有推力
 	Vector3f(0.f, 0.f, 100.f).copyTo(_input_setpoint.acceleration);
 
 	EXPECT_TRUE(runController());
 	EXPECT_FLOAT_EQ(_output_setpoint.thrust[0], 0.f);
 	EXPECT_FLOAT_EQ(_output_setpoint.thrust[1], 0.f);
-	EXPECT_FLOAT_EQ(_output_setpoint.thrust[2], -.1f); // minimum thrust
+	EXPECT_FLOAT_EQ(_output_setpoint.thrust[2], -.1f); // 最小推力
 }
 
 TEST_F(PositionControlBasicTest, InputCombinationsPosition)
@@ -248,7 +215,7 @@ TEST_F(PositionControlBasicTest, InputCombinationsPositionVelocity)
 {
 	_input_setpoint.velocity[0] = .1f;
 	_input_setpoint.velocity[1] = .2f;
-	_input_setpoint.position[2] = .3f; // altitude
+	_input_setpoint.position[2] = .3f; // 高度
 
 	EXPECT_TRUE(runController());
 	EXPECT_TRUE(isnan(_output_setpoint.x));
@@ -275,7 +242,7 @@ TEST_F(PositionControlBasicTest, SetpointValiditySimple)
 
 TEST_F(PositionControlBasicTest, SetpointValidityAllCombinations)
 {
-	// This test runs any combination of set and unset (NAN) setpoints and checks if it gets accepted or rejected correctly
+	// 该测试运行所有组合的设定点和未设定（NAN）设定点，并检查它们是否被正确接受或拒绝
 	float *const setpoint_loop_access_map[] = {&_input_setpoint.position[0], &_input_setpoint.velocity[0], &_input_setpoint.acceleration[0],
 						   &_input_setpoint.position[1], &_input_setpoint.velocity[1], &_input_setpoint.acceleration[1],
 						   &_input_setpoint.position[2], &_input_setpoint.velocity[2], &_input_setpoint.acceleration[2]
@@ -286,31 +253,31 @@ TEST_F(PositionControlBasicTest, SetpointValidityAllCombinations)
 
 		for (int j = 0; j < 9; j++) {
 			if (combination & (1 << j)) {
-				// Set arbitrary finite value, some values clearly hit the limits to check these corner case combinations
+				// 设置任意有限值，一些值明显达到极限以检查这些边界情况组合
 				*(setpoint_loop_access_map[j]) = static_cast<float>(combination) / static_cast<float>(j + 1);
 			}
 		}
 
-		// Expect at least one setpoint per axis
+		// 期望每轴至少有一个设定点
 		const bool has_x_setpoint = ((combination & 7) != 0);
 		const bool has_y_setpoint = (((combination >> 3) & 7) != 0);
 		const bool has_z_setpoint = (((combination >> 6) & 7) != 0);
-		// Expect xy setpoints to come in pairs
+		// 期望 xy 设定点成对出现
 		const bool has_xy_pairs = (combination & 7) == ((combination >> 3) & 7);
 		const bool expected_result = has_x_setpoint && has_y_setpoint && has_z_setpoint && has_xy_pairs;
 
-		EXPECT_EQ(runController(), expected_result) << "combination " << combination << std::endl
-				<< "input" << std::endl
-				<< "position     " << _input_setpoint.position[0] << ", "
+		EXPECT_EQ(runController(), expected_result) << "组合 " << combination << std::endl
+				<< "输入" << std::endl
+				<< "位置     " << _input_setpoint.position[0] << ", "
 				<< _input_setpoint.position[1] << ", " << _input_setpoint.position[2] << std::endl
-				<< "velocity     " << _input_setpoint.velocity[0] << ", "
+				<< "速度     " << _input_setpoint.velocity[0] << ", "
 				<< _input_setpoint.velocity[1] << ", " << _input_setpoint.velocity[2] << std::endl
-				<< "acceleration " << _input_setpoint.acceleration[0] << ", "
+				<< "加速度   " << _input_setpoint.acceleration[0] << ", "
 				<< _input_setpoint.acceleration[1] << ", " << _input_setpoint.acceleration[2] << std::endl
-				<< "output" << std::endl
-				<< "position     " << _output_setpoint.x << ", " << _output_setpoint.y << ", " << _output_setpoint.z << std::endl
-				<< "velocity     " << _output_setpoint.vx << ", " << _output_setpoint.vy << ", " << _output_setpoint.vz << std::endl
-				<< "acceleration " << _output_setpoint.acceleration[0] << ", "
+				<< "输出" << std::endl
+				<< "位置     " << _output_setpoint.x << ", " << _output_setpoint.y << ", " << _output_setpoint.z << std::endl
+				<< "速度     " << _output_setpoint.vx << ", " << _output_setpoint.vy << ", " << _output_setpoint.vz << std::endl
+				<< "加速度   " << _output_setpoint.acceleration[0] << ", "
 				<< _output_setpoint.acceleration[1] << ", " << _output_setpoint.acceleration[2] << std::endl;
 	}
 }
@@ -338,45 +305,44 @@ TEST_F(PositionControlBasicTest, InvalidState)
 	EXPECT_FALSE(runController());
 }
 
-
 TEST_F(PositionControlBasicTest, UpdateHoverThrust)
 {
-	// GIVEN: some hover thrust and 0 velocity change
+	// 给定：一些悬停推力和 0 速度变化
 	const float hover_thrust = 0.6f;
 	_position_control.setHoverThrust(hover_thrust);
 
 	Vector3f(0.f, 0.f, 0.f).copyTo(_input_setpoint.velocity);
 
-	// WHEN: we run the controller
+	// 当我们运行控制器时
 	EXPECT_TRUE(runController());
 
-	// THEN: the output thrust equals the hover thrust
+	// 输出推力等于悬停推力
 	EXPECT_EQ(_output_setpoint.thrust[2], -hover_thrust);
 
-	// HOWEVER WHEN: we set a new hover thrust through the update function
+	// 但是当我们通过 update 函数设置新的悬停推力时
 	const float hover_thrust_new = 0.7f;
 	_position_control.updateHoverThrust(hover_thrust_new);
 	EXPECT_TRUE(runController());
 
-	// THEN: the integral is updated to avoid discontinuities and
-	// the output is still the same
+	// 积分器更新以避免不连续性
+	// 输出仍然相同
 	EXPECT_EQ(_output_setpoint.thrust[2], -hover_thrust);
 }
 
 TEST_F(PositionControlBasicTest, IntegratorWindupWithInvalidSetpoint)
 {
-	// GIVEN: the controller was ran with an invalid setpoint containing some valid values
+	// 给定：控制器运行了一个包含一些有效值的无效设定点
 	_input_setpoint.position[0] = .1f;
 	_input_setpoint.position[1] = .2f;
-	// all z-axis setpoints stay NAN
+	// 所有 z 轴设定点保持为 NAN
 	EXPECT_FALSE(runController());
 
-	// WHEN: we run the controller with a valid setpoint
+	// 当我们使用有效的设定点运行控制器时
 	_input_setpoint = PositionControl::empty_trajectory_setpoint;
 	Vector3f(0.f, 0.f, 0.f).copyTo(_input_setpoint.velocity);
 	EXPECT_TRUE(runController());
 
-	// THEN: the integral did not wind up and produce unexpected deviation
+	// 积分器没有产生意外偏差
 	EXPECT_FLOAT_EQ(_attitude.roll_body, 0.f);
 	EXPECT_FLOAT_EQ(_attitude.pitch_body, 0.f);
 }

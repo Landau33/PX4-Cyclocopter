@@ -1,43 +1,7 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * @file GotoControl.hpp
+ * 一个用于平面多旋翼飞行器平滑位置和航向参考的类。
  *
- * A class which smooths position and heading references from "go-to" setpoints
- * for planar multicopters.
- *
- * Be sure to set constraints with setGotoConstraints() before calling the update() method for the first time
+ * 确保在第一次调用 update() 方法之前使用 setGotoConstraints() 设置约束条件
  */
 
 #pragma once
@@ -59,35 +23,41 @@ public:
 	GotoControl() = default;
 	~GotoControl() = default;
 
+	/**
+	 * 检查是否需要处理目标设定点。
+	 *
+	 * @param now 当前时间戳（hrt_abstime）
+	 * @param enabled 是否启用目标控制
+	 * @return 如果需要运行则返回 true，否则返回 false
+	 */
 	bool checkForSetpoint(const hrt_abstime &now, const bool enabled);
 
 	/**
-	 * @brief resets the position smoother at the current position with zero velocity and acceleration.
+	 * @brief 在当前位置以零速度和加速度重置位置平滑器。
 	 *
-	 * @param position [m] (NED) local vehicle position
+	 * @param position [m] (NED) 当前本地车辆位置
 	 */
 	void resetPositionSmoother(const matrix::Vector3f &position);
 
 	/**
-	 * @brief resets the heading smoother at the current heading with zero heading rate and acceleration.
+	 * @brief 在当前航向以零航向速率和加速度重置航向平滑器。
 	 *
-	 * @param heading [rad] (from North) vehicle heading
+	 * @param heading [rad] (从北开始) 当前车辆航向
 	 */
 	void resetHeadingSmoother(const float heading);
 
 	/**
-	 * @brief updates the smoothers with the current setpoints and outputs the "trajectory setpoint" for lower level
-	 * loops to track.
+	 * @brief 使用当前设定点更新平滑器，并输出轨迹设定点供下层控制环跟踪。
 	 *
-	 * @param[in] dt [s] time since last control update
-	 * @param[in] position [m] (NED) local vehicle position
-	 * @param[in] heading [rad] (from North) vehicle heading
-	 * @param[in] goto_setpoint struct containing current go-to setpoints
-	 * @param[out] trajectory_setpoint struct containing trajectory (tracking) setpoints
+	 * @param[in] dt [s] 自上次控制更新以来的时间（秒）
+ 	 * @param[in] position [m] (NED) 当前本地车辆位置（米）
+ 	 * @param[in] heading [rad] (从北开始) 当前车辆航向（弧度）
+ 	 * @param[in] goto_setpoint 包含当前目标设定点的结构体
+ 	 * @param[out] trajectory_setpoint 包含轨迹（跟踪）设定点的结构体
 	 */
 	void update(const float dt, const matrix::Vector3f &position, const float heading);
 
-	// Setting all parameters from the outside saves 300bytes flash
+	// 从外部设置参数可以节省 300 字节的闪存空间
 	void setParamMpcAccHor(const float param_mpc_acc_hor) { _param_mpc_acc_hor = param_mpc_acc_hor; }
 	void setParamMpcAccDownMax(const float param_mpc_acc_down_max) { _param_mpc_acc_down_max = param_mpc_acc_down_max; }
 	void setParamMpcAccUpMax(const float param_mpc_acc_up_max) { _param_mpc_acc_up_max = param_mpc_acc_up_max; }
@@ -102,40 +72,40 @@ public:
 
 private:
 	/**
-	 * @brief optionally sets dynamic translational speed limits with corresponding scale on acceleration
+	 * @brief 可选地设置动态平移速度限制及其对应的加速度缩放。
 	 *
-	 * @param goto_setpoint struct containing current go-to setpoints
+	 * @param goto_setpoint 包含当前目标设定点的结构体
 	 */
 	void setPositionSmootherLimits(const goto_setpoint_s &goto_setpoint);
 
 	/**
-	 * @brief optionally sets a dynamic heading rate limit with corresponding scale on heading acceleration
+	 * @brief 可选地设置动态航向速率限制及其对应的航向加速度缩放。
 	 *
-	 * @param goto_setpoint struct containing current go-to setpoints
+	 * @param goto_setpoint 包含当前目标设定点的结构体
 	 */
 	void setHeadingSmootherLimits(const goto_setpoint_s &goto_setpoint);
 
-	uORB::SubscriptionData<goto_setpoint_s> _goto_setpoint_sub{ORB_ID(goto_setpoint)};
-	uORB::Publication<trajectory_setpoint_s> _trajectory_setpoint_pub{ORB_ID(trajectory_setpoint)};
-	uORB::Publication<vehicle_constraints_s> _vehicle_constraints_pub{ORB_ID(vehicle_constraints)};
+	uORB::SubscriptionData<goto_setpoint_s> _goto_setpoint_sub{ORB_ID(goto_setpoint)}; // 目标设定点订阅
+	uORB::Publication<trajectory_setpoint_s> _trajectory_setpoint_pub{ORB_ID(trajectory_setpoint)}; // 轨迹设定点发布
+	uORB::Publication<vehicle_constraints_s> _vehicle_constraints_pub{ORB_ID(vehicle_constraints)}; // 车辆约束发布
 
-	PositionSmoothing _position_smoothing;
-	HeadingSmoothing _heading_smoothing;
+	PositionSmoothing _position_smoothing; // 位置平滑器
+	HeadingSmoothing _heading_smoothing; // 航向平滑器
 
-	bool _is_initialized{false}; ///< true if smoothers were reset to current state
+	bool _is_initialized{false}; ///< 如果平滑器已重置为当前状态，则为 true
 
-	// flags that the next update() requires a valid current vehicle position to reset the smoothers
+	// 标记下一次 update() 需要有效的当前车辆位置来重置平滑器
 	bool _need_smoother_reset{true};
 
-	// flags if the last update() was controlling heading
+	// 标记上一次 update() 是否控制了航向
 	bool _controlling_heading{false};
 
-	float _param_mpc_acc_hor{0.f};
-	float _param_mpc_acc_down_max{0.f};
-	float _param_mpc_acc_up_max{0.f};
-	float _param_mpc_xy_cruise{0.f};
-	float _param_mpc_yawrauto_max{0.f};
-	float _param_mpc_yawrauto_acc{0.f};
-	float _param_mpc_z_v_auto_dn{0.f};
-	float _param_mpc_z_v_auto_up{0.f};
+	float _param_mpc_acc_hor{0.f}; // 水平加速度最大值
+	float _param_mpc_acc_down_max{0.f}; // 最大垂直下降加速度
+	float _param_mpc_acc_up_max{0.f}; // 最大垂直上升加速度
+	float _param_mpc_xy_cruise{0.f}; // 巡航水平速度
+	float _param_mpc_yawrauto_max{0.f}; // 最大自动航向速率
+	float _param_mpc_yawrauto_acc{0.f}; // 最大自动航向加速度
+	float _param_mpc_z_v_auto_dn{0.f}; // 最大自动垂直下降速度
+	float _param_mpc_z_v_auto_up{0.f}; // 最大自动垂直上升速度
 };

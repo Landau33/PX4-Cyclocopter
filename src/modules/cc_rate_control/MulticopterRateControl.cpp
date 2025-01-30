@@ -1,36 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (c) 2013-2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 #include "MulticopterRateControl.hpp"
 
 #include <drivers/drv_hrt.h>
@@ -75,9 +42,8 @@ MulticopterRateControl::init()
 void
 MulticopterRateControl::parameters_updated()
 {
-	// rate control parameters
-	// The controller gain K is used to convert the parallel (P + I/s + sD) form
-	// to the ideal (K * [1 + 1/sTi + sTd]) form
+	// 速率控制参数
+	// 控制器增益 K 用于将并行形式 (P + I/s + sD) 转换为理想形式 (K * [1 + 1/sTi + sTd])
 	const Vector3f rate_k = Vector3f(_param_mc_rollrate_k.get(), _param_mc_pitchrate_k.get(), _param_mc_yawrate_k.get());
 
 	_rate_control.setPidGains(
@@ -92,7 +58,7 @@ MulticopterRateControl::parameters_updated()
 		Vector3f(_param_mc_rollrate_ff.get(), _param_mc_pitchrate_ff.get(), _param_mc_yawrate_ff.get()));
 
 
-	// manual rate control acro mode rate limits
+	// 手动速率控制 Acro 模式速率限制
 	_acro_rate_max = Vector3f(radians(_param_mc_acro_r_max.get()), radians(_param_mc_acro_p_max.get()),
 				  radians(_param_mc_acro_y_max.get()));
 }
@@ -108,9 +74,9 @@ MulticopterRateControl::Run()
 
 	perf_begin(_loop_perf);
 
-	// Check if parameters have changed
+	// 检查参数是否已更改
 	if (_parameter_update_sub.updated()) {
-		// clear update
+		// 清除更新
 		parameter_update_s param_update;
 		_parameter_update_sub.copy(&param_update);
 
@@ -118,21 +84,21 @@ MulticopterRateControl::Run()
 		parameters_updated();
 	}
 
-	/* run controller on gyro changes */
+	/* 在陀螺仪变化时运行控制器 */
 	vehicle_angular_velocity_s angular_velocity;
 
 	if (_vehicle_angular_velocity_sub.update(&angular_velocity)) {
 
 		const hrt_abstime now = angular_velocity.timestamp_sample;
 
-		// Guard against too small (< 0.125ms) and too large (> 20ms) dt's.
+		// 保护过小 (< 0.125ms) 和过大 (> 20ms) 的 dt。
 		const float dt = math::constrain(((now - _last_run) * 1e-6f), 0.000125f, 0.02f);
 		_last_run = now;
 
 		const Vector3f rates{angular_velocity.xyz};
 		const Vector3f angular_accel{angular_velocity.xyz_derivative};
 
-		/* check for updates in other topics */
+		/* 检查其他主题的更新 */
 		_vehicle_control_mode_sub.update(&_vehicle_control_mode);
 
 		if (_vehicle_land_detected_sub.updated()) {
@@ -146,15 +112,15 @@ MulticopterRateControl::Run()
 
 		_vehicle_status_sub.update(&_vehicle_status);
 
-		// use rates setpoint topic
+		// 使用速率设定点主题
 		vehicle_rates_setpoint_s vehicle_rates_setpoint{};
 
 		if (_vehicle_control_mode.flag_control_manual_enabled && !_vehicle_control_mode.flag_control_attitude_enabled) {
-			// generate the rate setpoint from sticks
+			// 根据操纵杆生成速率设定点
 			manual_control_setpoint_s manual_control_setpoint;
 
 			if (_manual_control_setpoint_sub.update(&manual_control_setpoint)) {
-				// manual rates control - ACRO mode
+				// 手动速率控制 - ACRO 模式
 				const Vector3f man_rate_sp{
 					math::superexpo(manual_control_setpoint.roll, _param_mc_acro_expo.get(), _param_mc_acro_supexpo.get()),
 					math::superexpo(-manual_control_setpoint.pitch, _param_mc_acro_expo.get(), _param_mc_acro_supexpo.get()),
@@ -164,7 +130,7 @@ MulticopterRateControl::Run()
 				_thrust_setpoint(2) = -(manual_control_setpoint.throttle + 1.f) * .5f;
 				_thrust_setpoint(0) = _thrust_setpoint(1) = 0.f;
 
-				// publish rate setpoint
+				// 发布速率设定点
 				vehicle_rates_setpoint.roll = _rates_setpoint(0);
 				vehicle_rates_setpoint.pitch = _rates_setpoint(1);
 				vehicle_rates_setpoint.yaw = _rates_setpoint(2);
@@ -183,15 +149,15 @@ MulticopterRateControl::Run()
 			}
 		}
 
-		// run the rate controller
+		// 运行速率控制器
 		if (_vehicle_control_mode.flag_control_rates_enabled) {
 
-			// reset integral if disarmed
+			// 如果未武装或车辆类型不是旋翼机，则重置积分器
 			if (!_vehicle_control_mode.flag_armed || _vehicle_status.vehicle_type != vehicle_status_s::VEHICLE_TYPE_ROTARY_WING) {
 				_rate_control.resetIntegral();
 			}
 
-			// update saturation status from control allocation feedback
+			// 从控制分配反馈中更新饱和状态
 			control_allocator_status_s control_allocator_status;
 
 			if (_control_allocator_status_sub.update(&control_allocator_status)) {
@@ -209,20 +175,20 @@ MulticopterRateControl::Run()
 					}
 				}
 
-				// TODO: send the unallocated value directly for better anti-windup
+				// TODO: 直接发送未分配值以更好地进行防风
 				_rate_control.setSaturationStatus(saturation_positive, saturation_negative);
 			}
 
-			// run rate controller
+			// 运行速率控制器
 			const Vector3f att_control = _rate_control.update(rates, _rates_setpoint, angular_accel, dt, _maybe_landed || _landed);
 
-			// publish rate controller status
+			// 发布速率控制器状态
 			rate_ctrl_status_s rate_ctrl_status{};
 			_rate_control.getRateControlStatus(rate_ctrl_status);
 			rate_ctrl_status.timestamp = hrt_absolute_time();
 			_controller_status_pub.publish(rate_ctrl_status);
 
-			// publish thrust and torque setpoints
+			// 发布推力和扭矩设定点
 			vehicle_thrust_setpoint_s vehicle_thrust_setpoint{};
 			vehicle_torque_setpoint_s vehicle_torque_setpoint{};
 
@@ -231,7 +197,7 @@ MulticopterRateControl::Run()
 			vehicle_torque_setpoint.xyz[1] = PX4_ISFINITE(att_control(1)) ? att_control(1) : 0.f;
 			vehicle_torque_setpoint.xyz[2] = PX4_ISFINITE(att_control(2)) ? att_control(2) : 0.f;
 
-			// scale setpoints by battery status if enabled
+			// 如果启用了电池缩放，则根据电池状态缩放设定点
 			if (_param_mc_bat_scale_en.get()) {
 				if (_battery_status_sub.updated()) {
 					battery_status_s battery_status;
@@ -333,11 +299,10 @@ int MulticopterRateControl::print_usage(const char *reason)
 
 	PRINT_MODULE_DESCRIPTION(
 		R"DESCR_STR(
-### Description
-This implements the multicopter rate controller. It takes rate setpoints (in acro mode
-via `manual_control_setpoint` topic) as inputs and outputs actuator control messages.
+### 描述
+该模块实现了多旋翼速率控制器。它接收速率设定点（在 Acro 模式下通过 `manual_control_setpoint` 主题）作为输入，并输出执行器控制消息。
 
-The controller has a PID loop for angular rate error.
+控制器具有一个 PID 环来控制角速度误差。
 
 )DESCR_STR");
 

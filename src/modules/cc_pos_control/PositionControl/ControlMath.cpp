@@ -1,40 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (C) 2018 - 2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-/**
- * @file ControlMath.cpp
- */
-
 #include "ControlMath.hpp"
 #include <px4_platform_common/defines.h>
 #include <float.h>
@@ -46,73 +9,75 @@ namespace ControlMath
 {
 void thrustToAttitude(const Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp)
 {
+	// 将推力向量转换为姿态设定点
 	bodyzToAttitude(-thr_sp, yaw_sp, att_sp);
-	att_sp.thrust_body[2] = -thr_sp.length();
+	att_sp.thrust_body[2] = -thr_sp.length(); // 设置机体坐标系下的 Z 轴推力大小
 }
 
 void limitTilt(Vector3f &body_unit, const Vector3f &world_unit, const float max_angle)
 {
-	// determine tilt
+	// 计算倾斜角度
 	const float dot_product_unit = body_unit.dot(world_unit);
 	float angle = acosf(dot_product_unit);
-	// limit tilt
+
+	// 限制倾斜角度
 	angle = math::min(angle, max_angle);
 	Vector3f rejection = body_unit - (dot_product_unit * world_unit);
 
-	// corner case exactly parallel vectors
+	// 处理特殊情况：平行向量
 	if (rejection.norm_squared() < FLT_EPSILON) {
 		rejection(0) = 1.f;
 	}
 
+	// 重新计算 body_unit 向量，确保其与世界坐标系的夹角不超过最大倾斜角度
 	body_unit = cosf(angle) * world_unit + sinf(angle) * rejection.unit();
 }
 
 void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp)
 {
-	// zero vector, no direction, set safe level value
+	// 如果输入向量接近零向量，则默认设置为 Z 轴正方向
 	if (body_z.norm_squared() < FLT_EPSILON) {
 		body_z(2) = 1.f;
 	}
 
 	body_z.normalize();
 
-	// vector of desired yaw direction in XY plane, rotated by PI/2
+	// 计算期望的 Yaw 方向在 XY 平面内的单位向量，并旋转 PI/2 角度
 	const Vector3f y_C{-sinf(yaw_sp), cosf(yaw_sp), 0.f};
 
-	// desired body_x axis, orthogonal to body_z
+	// 计算期望的机体 X 轴，垂直于 body_z
 	Vector3f body_x = y_C % body_z;
 
-	// keep nose to front while inverted upside down
+	// 当飞行器倒置时，保持机头向前
 	if (body_z(2) < 0.f) {
 		body_x = -body_x;
 	}
 
+	// 如果推力几乎在 XY 平面上，设置 X 轴向下以构造正确的旋转矩阵（但实际不会使用 Yaw 分量）
 	if (fabsf(body_z(2)) < 0.000001f) {
-		// desired thrust is in XY plane, set X downside to construct correct matrix,
-		// but yaw component will not be used actually
 		body_x.zero();
 		body_x(2) = 1.f;
 	}
 
 	body_x.normalize();
 
-	// desired body_y axis
+	// 计算期望的机体 Y 轴
 	const Vector3f body_y = body_z % body_x;
 
 	Dcmf R_sp;
 
-	// fill rotation matrix
+	// 填充旋转矩阵
 	for (int i = 0; i < 3; i++) {
 		R_sp(i, 0) = body_x(i);
 		R_sp(i, 1) = body_y(i);
 		R_sp(i, 2) = body_z(i);
 	}
 
-	// copy quaternion setpoint to attitude setpoint topic
+	// 将四元数设定点复制到姿态设定点主题中
 	const Quatf q_sp{R_sp};
 	q_sp.copyTo(att_sp.q_d);
 
-	// calculate euler angles, for logging only, must not be used for control
+	// 计算欧拉角，仅用于记录日志，不得用于控制
 	const Eulerf euler{R_sp};
 	att_sp.roll_body = euler.phi();
 	att_sp.pitch_body = euler.theta();
@@ -121,60 +86,24 @@ void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpo
 
 Vector2f constrainXY(const Vector2f &v0, const Vector2f &v1, const float &max)
 {
+	// 如果 v0 和 v1 的和不超过最大值，则直接返回其和
 	if (Vector2f(v0 + v1).norm() <= max) {
-		// vector does not exceed maximum magnitude
 		return v0 + v1;
 
 	} else if (v0.length() >= max) {
-		// the magnitude along v0, which has priority, already exceeds maximum.
+		// 如果 v0 的长度已经超过最大值，则返回 v0 的归一化向量乘以最大值
 		return v0.normalized() * max;
 
 	} else if (fabsf(Vector2f(v1 - v0).norm()) < 0.001f) {
-		// the two vectors are equal
+		// 如果两个向量相等，则返回 v0 的归一化向量乘以最大值
 		return v0.normalized() * max;
 
 	} else if (v0.length() < 0.001f) {
-		// the first vector is 0.
+		// 如果第一个向量接近零，则返回 v1 的归一化向量乘以最大值
 		return v1.normalized() * max;
 
 	} else {
-		// vf = final vector with ||vf|| <= max
-		// s = scaling factor
-		// u1 = unit of v1
-		// vf = v0 + v1 = v0 + s * u1
-		// constraint: ||vf|| <= max
-		//
-		// solve for s: ||vf|| = ||v0 + s * u1|| <= max
-		//
-		// Derivation:
-		// For simplicity, replace v0 -> v, u1 -> u
-		// 				   		   v0(0/1/2) -> v0/1/2
-		// 				   		   u1(0/1/2) -> u0/1/2
-		//
-		// ||v + s * u||^2 = (v0+s*u0)^2+(v1+s*u1)^2+(v2+s*u2)^2 = max^2
-		// v0^2+2*s*u0*v0+s^2*u0^2 + v1^2+2*s*u1*v1+s^2*u1^2 + v2^2+2*s*u2*v2+s^2*u2^2 = max^2
-		// s^2*(u0^2+u1^2+u2^2) + s*2*(u0*v0+u1*v1+u2*v2) + (v0^2+v1^2+v2^2-max^2) = 0
-		//
-		// quadratic equation:
-		// -> s^2*a + s*b + c = 0 with solution: s1/2 = (-b +- sqrt(b^2 - 4*a*c))/(2*a)
-		//
-		// b = 2 * u.dot(v)
-		// a = 1 (because u is normalized)
-		// c = (v0^2+v1^2+v2^2-max^2) = -max^2 + ||v||^2
-		//
-		// sqrt(b^2 - 4*a*c) =
-		// 		sqrt(4*u.dot(v)^2 - 4*(||v||^2 - max^2)) = 2*sqrt(u.dot(v)^2 +- (||v||^2 -max^2))
-		//
-		// s1/2 = ( -2*u.dot(v) +- 2*sqrt(u.dot(v)^2 - (||v||^2 -max^2)) / 2
-		//      =  -u.dot(v) +- sqrt(u.dot(v)^2 - (||v||^2 -max^2))
-		// m = u.dot(v)
-		// s = -m + sqrt(m^2 - c)
-		//
-		//
-		//
-		// notes:
-		// 	- s (=scaling factor) needs to be positive
-		// 	- (max - ||v||) always larger than zero, otherwise it never entered this if-statement
+		// 使用二次方程求解缩放因子 s，使得最终向量的模长不超过最大值
 		Vector2f u1 = v1.normalized();
 		float m = u1.dot(v0);
 		float c = v0.dot(v0) - max * max;
@@ -186,7 +115,7 @@ Vector2f constrainXY(const Vector2f &v0, const Vector2f &v1, const float &max)
 bool cross_sphere_line(const Vector3f &sphere_c, const float sphere_r,
 		       const Vector3f &line_a, const Vector3f &line_b, Vector3f &res)
 {
-	// project center of sphere on line  normalized AB
+	// 将球心投影到线段上
 	Vector3f ab_norm = line_b - line_a;
 
 	if (ab_norm.length() < 0.01f) {
@@ -198,31 +127,30 @@ bool cross_sphere_line(const Vector3f &sphere_c, const float sphere_r,
 	float cd_len = (sphere_c - d).length();
 
 	if (sphere_r > cd_len) {
-		// we have triangle CDX with known CD and CX = R, find DX
+		// 球体与线段相交，计算交点
 		float dx_len = sqrtf(sphere_r * sphere_r - cd_len * cd_len);
 
 		if ((sphere_c - line_b) * ab_norm > 0.f) {
-			// target waypoint is already behind us
+			// 目标航路点已经在后面
 			res = line_b;
 
 		} else {
-			// target is in front of us
-			res = d + ab_norm * dx_len; // vector A->B on line
+			// 目标航路点在前面
+			res = d + ab_norm * dx_len;
 		}
 
 		return true;
 
 	} else {
+		// 没有交点，返回最近点
+		res = d;
 
-		// have no roots, return D
-		res = d; // go directly to line
-
-		// previous waypoint is still in front of us
+		// 上一个航路点仍然在前面
 		if ((sphere_c - line_a) * ab_norm < 0.f) {
 			res = line_a;
 		}
 
-		// target waypoint is already behind us
+		// 目标航路点已经在后面
 		if ((sphere_c - line_b) * ab_norm > 0.f) {
 			res = line_b;
 		}
@@ -234,15 +162,15 @@ bool cross_sphere_line(const Vector3f &sphere_c, const float sphere_r,
 void addIfNotNan(float &setpoint, const float addition)
 {
 	if (PX4_ISFINITE(setpoint) && PX4_ISFINITE(addition)) {
-		// No NAN, add to the setpoint
+		// 如果没有 NaN，将 addition 加到 setpoint 上
 		setpoint += addition;
 
 	} else if (!PX4_ISFINITE(setpoint)) {
-		// Setpoint NAN, take addition
+		// 如果 setpoint 是 NaN，取 addition 的值
 		setpoint = addition;
 	}
 
-	// Addition is NAN or both are NAN, nothing to do
+	// 如果 addition 或两者都是 NaN，不做任何操作
 }
 
 void addIfNotNanVector3f(Vector3f &setpoint, const Vector3f &addition)
@@ -254,7 +182,7 @@ void addIfNotNanVector3f(Vector3f &setpoint, const Vector3f &addition)
 
 void setZeroIfNanVector3f(Vector3f &vector)
 {
-	// Adding zero vector overwrites elements that are NaN with zero
+	// 添加零向量会将 NaN 元素替换为零
 	addIfNotNanVector3f(vector, Vector3f());
 }
 

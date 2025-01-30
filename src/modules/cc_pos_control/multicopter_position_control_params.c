@@ -1,87 +1,54 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * Vertical thrust required to hover
+ * 悬停所需的垂直推力
  *
- * Mapped to center throttle stick in Stabilized mode (see MPC_THR_CURVE).
- * Used for initialization of the hover thrust estimator (see MPC_USE_HTE).
- * The estimated hover thrust is used as base for zero vertical acceleration in altitude control.
- * The hover thrust is important for land detection to work correctly.
+ * 在稳定模式下映射到油门操纵杆的中心位置（参见 MPC_THR_CURVE）。
+ * 用于悬停推力估计器的初始化（参见 MPC_USE_HTE）。
+ * 估计的悬停推力用作高度控制中零垂直加速度的基础。
+ * 悬停推力对于正确的工作着陆检测非常重要。
  *
- * @unit norm
- * @min 0.1
- * @max 0.8
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Position Control
+ * @单位 规范化 (norm)
+ * @最小值 0.1
+ * @最大值 0.8
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_THR_HOVER, 0.5f);
 
 /**
- * Hover thrust estimator
+ * 悬停推力估计器
  *
- * Disable to use the fixed parameter MPC_THR_HOVER
- * Enable to use the hover thrust estimator
+ * 禁用以使用固定的参数 MPC_THR_HOVER
+ * 启用以使用悬停推力估计器
  *
- * @boolean
- * @group Multicopter Position Control
+ * @布尔值
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_INT32(MPC_USE_HTE, 1);
 
 /**
- * Horizontal thrust margin
+ * 水平推力裕度
  *
- * Margin that is kept for horizontal control when higher priority vertical thrust is saturated.
- * To avoid completely starving horizontal control with high vertical error.
+ * 当更高优先级的垂直推力饱和时，为水平控制保留的裕度。
+ * 以避免在高垂直误差情况下完全剥夺水平控制。
  *
- * @unit norm
- * @min 0
- * @max 0.5
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Position Control
+ * @单位 规范化 (norm)
+ * @最小值 0
+ * @最大值 0.5
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_THR_XY_MARG, 0.3f);
 
 /**
- * Numerical velocity derivative low pass cutoff frequency
+ * 数值速度导数低通截止频率
  *
- * @unit Hz
- * @min 0
- * @max 10
- * @decimal 1
- * @increment 0.5
- * @group Multicopter Position Control
+ * @单位 赫兹 (Hz)
+ * @最小值 0
+ * @最大值 10
+ * @小数位 1
+ * @增量 0.5
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_VELD_LP, 5.0f);

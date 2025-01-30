@@ -1,42 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (c) 2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-/**
- * @file Takeoff.hpp
- *
- * A class handling all takeoff states and a smooth ramp up of the motors.
- */
-
 #pragma once
 
 #include <lib/hysteresis/hysteresis.h>
@@ -46,56 +7,54 @@
 using namespace time_literals;
 
 enum class TakeoffState {
-	disarmed = takeoff_status_s::TAKEOFF_STATE_DISARMED,
-	spoolup = takeoff_status_s::TAKEOFF_STATE_SPOOLUP,
-	ready_for_takeoff = takeoff_status_s::TAKEOFF_STATE_READY_FOR_TAKEOFF,
-	rampup = takeoff_status_s::TAKEOFF_STATE_RAMPUP,
-	flight = takeoff_status_s::TAKEOFF_STATE_FLIGHT
+	disarmed = takeoff_status_s::TAKEOFF_STATE_DISARMED, // 未武装状态
+	spoolup = takeoff_status_s::TAKEOFF_STATE_SPOOLUP, // 预热状态
+	ready_for_takeoff = takeoff_status_s::TAKEOFF_STATE_READY_FOR_TAKEOFF, // 准备起飞状态
+	rampup = takeoff_status_s::TAKEOFF_STATE_RAMPUP, // 爬升斜坡状态
+	flight = takeoff_status_s::TAKEOFF_STATE_FLIGHT // 飞行状态
 };
 
 class TakeoffHandling
 {
 public:
-	TakeoffHandling() = default;
-	~TakeoffHandling() = default;
+	TakeoffHandling() = default; // 默认构造函数
+	~TakeoffHandling() = default; // 默认析构函数
 
-	// initialize parameters
-	void setSpoolupTime(const float seconds) { _spoolup_time_hysteresis.set_hysteresis_time_from(false, seconds * 1_s); }
-	void setTakeoffRampTime(const float seconds) { _takeoff_ramp_time = seconds; }
+	// 初始化参数
+	void setSpoolupTime(const float seconds) { _spoolup_time_hysteresis.set_hysteresis_time_from(false, seconds * 1_s); } ///< 设置预热时间
+	void setTakeoffRampTime(const float seconds) { _takeoff_ramp_time = seconds; } ///< 设置起飞斜坡时间
 
 	/**
-	 * Calculate a vertical velocity to initialize the takeoff ramp
-	 * that when passed to the velocity controller results in a zero throttle setpoint.
-	 * @param hover_thrust normalized thrsut value with which the vehicle hovers
-	 * @param velocity_p_gain proportional gain of the velocity controller to calculate the thrust
+	 * 计算一个垂直速度以初始化起飞斜坡，使得传递给速度控制器时产生零油门设定点。
+	 * @param velocity_p_gain 速度控制器的比例增益，用于计算推力
 	 */
 	void generateInitialRampValue(const float velocity_p_gain);
 
 	/**
-	 * Update the state for the takeoff.
-	 * Has to be called also when not flying altitude controlled to skip the takeoff and not do it in flight when switching mode.
+	 * 更新起飞状态。
+	 * 即使在不进行高度控制飞行时也必须调用此函数，以跳过起飞并在模式切换时不在空中执行起飞。
 	 */
 	void updateTakeoffState(const bool armed, const bool landed, const bool want_takeoff,
 				const float takeoff_desired_vz, const bool skip_takeoff, const hrt_abstime &now_us);
 
 	/**
-	 * Update and return the velocity constraint ramp value during takeoff.
-	 * By ramping up _takeoff_ramp_vz during the takeoff and using it to constain the maximum climb rate a smooth takeoff behavior is achieved.
-	 * Returns zero on the ground and takeoff_desired_vz in flight.
-	 * @param dt time in seconds since the last call/loop iteration
-	 * @param takeoff_desired_vz end value for the velocity ramp
-	 * @return true if setpoint has updated correctly
+	 * 更新并返回起飞期间的速度约束斜坡值。
+	 * 通过在起飞过程中逐渐增加 `_takeoff_ramp_vz` 并使用它来限制最大爬升率，可以实现平滑的起飞行为。
+	 * 在地面上返回零，在飞行中返回 `takeoff_desired_vz`。
+	 * @param dt 自上次调用/循环迭代以来的时间（秒）
+	 * @param takeoff_desired_vz 速度斜坡的最终值
+	 * @return 返回更新后的上升速度限制
 	 */
 	float updateRamp(const float dt, const float takeoff_desired_vz);
 
-	TakeoffState getTakeoffState() { return _takeoff_state; }
+	TakeoffState getTakeoffState() { return _takeoff_state; } ///< 获取当前起飞状态
 
 private:
-	TakeoffState _takeoff_state = TakeoffState::disarmed;
+	TakeoffState _takeoff_state = TakeoffState::disarmed; ///< 当前起飞状态，默认为未武装状态
 
-	systemlib::Hysteresis _spoolup_time_hysteresis{false}; ///< becomes true COM_SPOOLUP_TIME seconds after the vehicle was armed
+	systemlib::Hysteresis _spoolup_time_hysteresis{false}; ///< 在飞行器武装后 COM_SPOOLUP_TIME 秒后变为 true
 
-	float _takeoff_ramp_time{0.f};
-	float _takeoff_ramp_vz_init{0.f}; ///< verticval velocity resulting in zero thrust
-	float _takeoff_ramp_progress{0.f}; ///< asecnding from 0 to 1
+	float _takeoff_ramp_time{0.f}; ///< 起飞斜坡时间
+	float _takeoff_ramp_vz_init{0.f}; ///< 导致零推力的垂直速度
+	float _takeoff_ramp_progress{0.f}; ///< 从 0 到 1 递增的爬升进度
 };

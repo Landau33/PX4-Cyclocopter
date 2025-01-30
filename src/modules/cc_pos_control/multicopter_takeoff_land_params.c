@@ -1,124 +1,88 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * Smooth takeoff ramp time constant
+ * 平滑起飞斜坡时间常数
  *
- * Increasing this value will make climb rate controlled takeoff slower.
- * If it's too slow the drone might scratch the ground and tip over.
- * A time constant of 0 disables the ramp
+ * 增加此值将使爬升速率控制的起飞过程变慢。
+ * 如果太慢，无人机可能会刮到地面并翻倒。
+ * 时间常数为 0 将禁用斜坡。
  *
- * @unit s
- * @min 0
- * @max 5
- * @group Multicopter Position Control
+ * @单位 秒 (s)
+ * @最小值 0
+ * @最大值 5
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_TKO_RAMP_T, 3.f);
 
 /**
- * Takeoff climb rate
+ * 起飞爬升速度
  *
- * @unit m/s
- * @min 1
- * @max 5
- * @decimal 2
- * @group Multicopter Position Control
+ * @单位 米/秒 (m/s)
+ * @最小值 1
+ * @最大值 5
+ * @小数位 2
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_TKO_SPEED, 1.5f);
 
 /**
- * Altitude for 1. step of slow landing (descend)
+ * 慢速降落第一阶段的高度
  *
- * Below this altitude descending velocity gets limited to a value
- * between "MPC_Z_VEL_MAX_DN" (or "MPC_Z_V_AUTO_DN") and "MPC_LAND_SPEED"
- * Value needs to be higher than "MPC_LAND_ALT2"
+ * 低于此高度时，下降速度将被限制在 "MPC_Z_VEL_MAX_DN"（或 "MPC_Z_V_AUTO_DN"）和 "MPC_LAND_SPEED" 之间的一个值。
+ * 此值需要高于 "MPC_LAND_ALT2"。
  *
- * @unit m
- * @min 0
- * @max 122
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 米 (m)
+ * @最小值 0
+ * @最大值 122
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_LAND_ALT1, 10.f);
 
 /**
- * Altitude for 2. step of slow landing (landing)
+ * 慢速降落第二阶段的高度
  *
- * Below this altitude descending velocity gets
- * limited to "MPC_LAND_SPEED"
- * Value needs to be lower than "MPC_LAND_ALT1"
+ * 低于此高度时，下降速度将被限制为 "MPC_LAND_SPEED"。
+ * 此值需要低于 "MPC_LAND_ALT1"。
  *
- * @unit m
- * @min 0
- * @max 122
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 米 (m)
+ * @最小值 0
+ * @最大值 122
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_LAND_ALT2, 5.f);
 
 /**
- * Altitude for 3. step of slow landing
+ * 慢速降落第三阶段的高度
  *
- * Below this altitude descending velocity gets
- * limited to "MPC_LAND_CRWL", if LIDAR available.
- * No effect if LIDAR not available
+ * 低于此高度时，如果存在激光雷达 (LIDAR)，下降速度将被限制为 "MPC_LAND_CRWL"。
+ * 如果没有激光雷达，则此参数无效。
  *
- * @unit m
- * @min 0
- * @max 122
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 米 (m)
+ * @最小值 0
+ * @最大值 122
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_LAND_ALT3, 1.f);
 
 /**
- * Landing descend rate
+ * 着陆下降速度
  *
- * @unit m/s
- * @min 0.6
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 米/秒 (m/s)
+ * @最小值 0.6
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_LAND_SPEED, 0.7f);
 
 /**
- * Land crawl descend rate
+ * 着陆爬行下降速度
  *
- * Used below MPC_LAND_ALT3 if distance sensor data is availabe.
+ * 在低于 MPC_LAND_ALT3 且有距离传感器数据可用时使用。
  *
- * @unit m/s
- * @min 0.1
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 米/秒 (m/s)
+ * @最小值 0.1
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_LAND_CRWL, 0.3f);

@@ -1,177 +1,137 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * Default horizontal velocity in autonomous modes
+ * 自主导航模式下的默认水平速度
  *
- * e.g. in Missions, RTL, Goto if the waypoint does not specify differently
+ * 例如，在任务、返航 (RTL) 和前往 (Goto) 模式中，如果航点没有另行指定。
  *
- * @unit m/s
- * @min 3
- * @max 20
- * @decimal 0
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 m/s
+ * @最小值 3
+ * @最大值 20
+ * @小数位 0
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_XY_CRUISE, 5.f);
 
 /**
- * Ascent velocity in autonomous modes
+ * 自主导航模式下的上升速度
  *
- * For manually controlled modes and offboard see MPC_Z_VEL_MAX_UP
+ * 对于手动控制模式和离板模式，请参见 MPC_Z_VEL_MAX_UP
  *
- * @unit m/s
- * @min 0.5
- * @max 8
- * @decimal 1
- * @increment 0.5
- * @group Multicopter Position Control
+ * @单位 m/s
+ * @最小值 0.5
+ * @最大值 8
+ * @小数位 1
+ * @增量 0.5
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_Z_V_AUTO_UP, 3.f);
 
 /**
- * Descent velocity in autonomous modes
+ * 自主导航模式下的下降速度
  *
- * For manual modes and offboard, see MPC_Z_VEL_MAX_DN
+ * 对于手动模式和离板模式，请参见 MPC_Z_VEL_MAX_DN
  *
- * @unit m/s
- * @min 0.5
- * @max 4
- * @decimal 1
- * @increment 0.5
- * @group Multicopter Position Control
+ * @单位 m/s
+ * @最小值 0.5
+ * @最大值 4
+ * @小数位 1
+ * @增量 0.5
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_Z_V_AUTO_DN, 1.5f);
 
 /**
- * Acceleration for autonomous and for manual modes
+ * 自主导航和手动模式下的加速度
  *
- * When piloting manually, this parameter is only used in MPC_POS_MODE 4.
+ * 当手动驾驶时，此参数仅在 MPC_POS_MODE 为 4 时使用。
  *
- * @unit m/s^2
- * @min 2
- * @max 15
- * @decimal 1
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 m/s^2
+ * @最小值 2
+ * @最大值 15
+ * @小数位 1
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_ACC_HOR, 3.f);
 
 /**
- * Jerk limit in autonomous modes
+ * 自主导航模式下的抖动限制
  *
- * Limit the maximum jerk of the vehicle (how fast the acceleration can change).
- * A lower value leads to smoother vehicle motions but also limited agility.
+ * 限制车辆的最大抖动（即加速度变化的速度）。较低的值会导致更平滑的运动，但也会限制灵活性。
  *
- * @unit m/s^3
- * @min 1
- * @max 80
- * @decimal 1
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 m/s^3
+ * @最小值 1
+ * @最大值 80
+ * @小数位 1
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_JERK_AUTO, 4.f);
 
 /**
- * Proportional gain for horizontal trajectory position error
+ * 水平轨迹位置误差的比例增益
  *
- * @min 0.1
- * @max 1
- * @decimal 1
- * @increment 0.1
- * @group Multicopter Position Control
+ * @最小值 0.1
+ * @最大值 1
+ * @小数位 1
+ * @增量 0.1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_XY_TRAJ_P, 0.5f);
 
 /**
- * Maximum horizontal error allowed by the trajectory generator
+ * 轨迹生成器允许的最大水平误差
  *
- * The integration speed of the trajectory setpoint is linearly
- * reduced with the horizontal position tracking error. When the
- * error is above this parameter, the integration of the
- * trajectory is stopped to wait for the drone.
+ * 轨迹设定点的积分速度随水平位置跟踪误差线性减少。当误差超过此参数时，轨迹积分将停止以等待无人机。
  *
- * This value can be adjusted depending on the tracking
- * capabilities of the vehicle.
+ * 根据车辆的跟踪能力调整此值。
  *
- * @min 0.1
- * @max 10
- * @decimal 1
- * @increment 1
- * @group Multicopter Position Control
+ * @最小值 0.1
+ * @最大值 10
+ * @小数位 1
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_XY_ERR_MAX, 2.f);
 
 /**
- * Maximum yaw rate in autonomous modes
+ * 自主导航模式下的最大偏航速率
  *
- * Limits the rate of change of the yaw setpoint to avoid large
- * control output and mixer saturation.
+ * 限制偏航设定点的变化率，以避免过大的控制输出和混合器饱和。
  *
- * @unit deg/s
- * @min 5
- * @max 360
- * @decimal 0
- * @increment 5
- * @group Multicopter Attitude Control
+ * @单位 度/秒
+ * @最小值 5
+ * @最大值 360
+ * @小数位 0
+ * @增量 5
+ * @分组 多旋翼姿态控制
  */
 PARAM_DEFINE_FLOAT(MPC_YAWRAUTO_MAX, 45.f);
 
 /**
- * Maximum yaw acceleration in autonomous modes
+ * 自主导航模式下的最大偏航加速度
  *
- * Limits the acceleration of the yaw setpoint to avoid large
- * control output and mixer saturation.
+ * 限制偏航设定点的加速度，以避免过大的控制输出和混合器饱和。
  *
- * @unit deg/s^2
- * @min 5
- * @max 360
- * @decimal 0
- * @increment 5
- * @group Multicopter Attitude Control
+ * @单位 度/秒²
+ * @最小值 5
+ * @最大值 360
+ * @小数位 0
+ * @增量 5
+ * @分组 多旋翼姿态控制
  */
 PARAM_DEFINE_FLOAT(MPC_YAWRAUTO_ACC, 60.f);
 
 /**
- * Heading behavior in autonomous modes
+ * 自主导航模式下的航向行为
  *
- * @min 0
- * @max 4
- * @value 0 towards waypoint
- * @value 1 towards home
- * @value 2 away from home
- * @value 3 along trajectory
- * @value 4 towards waypoint (yaw first)
- * @group Mission
+ * @最小值 0
+ * @最大值 4
+ * @取值 0 朝向航点
+ * @取值 1 朝向家点
+ * @取值 2 远离家点
+ * @取值 3 沿轨迹
+ * @取值 4 朝向航点（先调整偏航）
+ * @分组 任务
  */
 PARAM_DEFINE_INT32(MPC_YAW_MODE, 0);

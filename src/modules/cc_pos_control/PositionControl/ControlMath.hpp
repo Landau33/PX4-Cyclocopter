@@ -1,43 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (C) 2018 - 2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-/**
- * @file ControlMath.hpp
- *
- * Simple functions for vector manipulation that do not fit into matrix lib.
- * These functions are specific for controls.
- */
-
 #pragma once
 
 #include <matrix/matrix/math.hpp>
@@ -46,73 +6,73 @@
 namespace ControlMath
 {
 /**
- * Converts thrust vector and yaw set-point to a desired attitude.
- * @param thr_sp desired 3D thrust vector
- * @param yaw_sp the desired yaw
- * @param att_sp attitude setpoint to fill
+ * 将推力向量和偏航设定点转换为期望的姿态。
+ * @param thr_sp 期望的三维推力向量
+ * @param yaw_sp 期望的偏航角
+ * @param att_sp 要填充的姿态设定点
  */
 void thrustToAttitude(const matrix::Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp);
 
 /**
- * Limits the tilt angle between two unit vectors
- * @param body_unit unit vector that will get adjusted if angle is too big
- * @param world_unit fixed vector to measure the angle against
- * @param max_angle maximum tilt angle between vectors in radians
+ * 限制两个单位向量之间的倾斜角度。
+ * @param body_unit 可调整的单位向量，如果角度过大将被调整
+ * @param world_unit 固定的参考单位向量
+ * @param max_angle 向量之间允许的最大倾斜角度（弧度）
  */
 void limitTilt(matrix::Vector3f &body_unit, const matrix::Vector3f &world_unit, const float max_angle);
 
 /**
- * Converts a body z vector and yaw set-point to a desired attitude.
- * @param body_z a world frame 3D vector in direction of the desired body z axis
- * @param yaw_sp the desired yaw setpoint
- * @param att_sp attitude setpoint to fill
+ * 将机体 Z 轴向量和偏航设定点转换为期望的姿态。
+ * @param body_z 世界坐标系中指向期望机体 Z 轴方向的三维向量
+ * @param yaw_sp 期望的偏航设定点
+ * @param att_sp 要填充的姿态设定点
  */
 void bodyzToAttitude(matrix::Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp);
 
 /**
- * Outputs the sum of two vectors but respecting the limits and priority.
- * The sum of two vectors are constraint such that v0 has priority over v1.
- * This means that if the length of (v0+v1) exceeds max, then it is constraint such
- * that v0 has priority.
+ * 输出两个向量的和，但尊重限制和优先级。
+ * v0 和 v1 的和受到约束，使得 v0 在最大可用模长下具有优先权。
+ * 这意味着如果 (v0 + v1) 的长度超过最大值，则进行约束以确保 v0 的优先权。
  *
- * @param v0 a 2D vector that has priority given the maximum available magnitude.
- * @param v1 a 2D vector that less priority given the maximum available magnitude.
- * @return 2D vector
+ * @param v0 具有优先权的二维向量，给定最大可用模长
+ * @param v1 次要优先权的二维向量，给定最大可用模长
+ * @param max 最大可用模长
+ * @return 二维向量
  */
 matrix::Vector2f constrainXY(const matrix::Vector2f &v0, const matrix::Vector2f &v1, const float &max);
 
 /**
- * This method was used for smoothing the corners along two lines.
+ * 此方法用于平滑两条线之间的拐角。
  *
- * @param sphere_c
- * @param sphere_r
- * @param line_a
- * @param line_b
- * @param res
- * return boolean
+ * @param sphere_c 球体中心
+ * @param sphere_r 球体半径
+ * @param line_a 线段起点
+ * @param line_b 线段终点
+ * @param res 结果向量
+ * @return 布尔值
  *
- * Note: this method is not used anywhere and first requires review before usage.
+ * 注意：此方法目前未在任何地方使用，并且在使用前需要审查。
  */
 bool cross_sphere_line(const matrix::Vector3f &sphere_c, const float sphere_r, const matrix::Vector3f &line_a,
 		       const matrix::Vector3f &line_b, matrix::Vector3f &res);
 
 /**
- * Adds e.g. feed-forward to the setpoint making sure existing or added NANs have no influence on control.
- * This function is udeful to support all the different setpoint combinations of position, velocity, acceleration with NAN representing an uncommitted value.
- * @param setpoint existing possibly NAN setpoint to add to
- * @param addition value/NAN to add to the setpoint
+ * 添加前馈到设定点，确保现有的或添加的 NaN 不影响控制。
+ * 此函数有助于支持位置、速度、加速度等不同设定点组合，其中 NaN 表示未提交的值。
+ * @param setpoint 可能包含 NaN 的现有设定点
+ * @param addition 要添加的值/NAN
  */
 void addIfNotNan(float &setpoint, const float addition);
 
 /**
- * _addIfNotNan for Vector3f treating each element individually
- * @see _addIfNotNan
+ * 对 Vector3f 的每个元素分别调用 addIfNotNan 函数。
+ * @see addIfNotNan
  */
 void addIfNotNanVector3f(matrix::Vector3f &setpoint, const matrix::Vector3f &addition);
 
 /**
- * Overwrites elements of a Vector3f which are NaN with zero
- * @param vector possibly containing NAN elements
+ * 将 Vector3f 中的 NaN 元素替换为零。
+ * @param vector 可能包含 NaN 元素的向量
  */
 void setZeroIfNanVector3f(matrix::Vector3f &vector);
 }

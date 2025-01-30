@@ -1,150 +1,116 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * Maximum horizontal velocity
+ * 最大水平速度
  *
- * Absolute maximum for all velocity controlled modes.
- * Any higher value is truncated.
+ * 所有速度控制模式下的绝对最大值。
+ * 任何更高的值将被截断。
  *
- * @unit m/s
- * @min 0
- * @max 20
- * @decimal 1
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 m/s
+ * @最小值 0
+ * @最大值 20
+ * @小数位 1
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_XY_VEL_MAX, 12.f);
 
 /**
- * Maximum ascent velocity
+ * 最大上升速度
  *
- * Absolute maximum for all climb rate controlled modes.
- * In manually piloted modes full stick deflection commands this velocity.
+ * 所有爬升速率控制模式下的绝对最大值。
+ * 在手动驾驶模式下，操纵杆满偏移时命令此速度。
  *
- * For default autonomous velocity see MPC_Z_V_AUTO_UP
+ * 自主导航模式下的默认上升速度参见 MPC_Z_V_AUTO_UP
  *
- * @unit m/s
- * @min 0.5
- * @max 8
- * @increment 0.1
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 m/s
+ * @最小值 0.5
+ * @最大值 8
+ * @增量 0.1
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_Z_VEL_MAX_UP, 3.f);
 
 /**
- * Maximum descent velocity
+ * 最大下降速度
  *
- * Absolute maximum for all climb rate controlled modes.
- * In manually piloted modes full stick deflection commands this velocity.
+ * 所有爬升速率控制模式下的绝对最大值。
+ * 在手动驾驶模式下，操纵杆满偏移时命令此速度。
  *
- * For default autonomous velocity see MPC_Z_V_AUTO_UP
+ * 自主导航模式下的默认下降速度参见 MPC_Z_V_AUTO_DN
  *
- * @unit m/s
- * @min 0.5
- * @max 4
- * @increment 0.1
- * @decimal 1
- * @group Multicopter Position Control
+ * @单位 m/s
+ * @最小值 0.5
+ * @最大值 4
+ * @增量 0.1
+ * @小数位 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_Z_VEL_MAX_DN, 1.5f);
 
 /**
- * Maximum tilt angle in air
+ * 空中最大倾斜角
  *
- * Absolute maximum for all velocity or acceleration controlled modes.
- * Any higher value is truncated.
+ * 所有速度或加速度控制模式下的绝对最大值。
+ * 任何更高的值将被截断。
  *
- * @unit deg
- * @min 20
- * @max 89
- * @decimal 0
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 度
+ * @最小值 20
+ * @最大值 89
+ * @小数位 0
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_TILTMAX_AIR, 45.f);
 
 /**
- * Maximum tilt during inital takeoff ramp
+ * 初始起飞阶段的最大倾斜角
  *
- * Tighter tilt limit during takeoff to avoid tip over.
+ * 起飞时更严格的倾斜限制以避免翻倒。
  *
- * @unit deg
- * @min 5
- * @max 89
- * @decimal 0
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 度
+ * @最小值 5
+ * @最大值 89
+ * @小数位 0
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_TILTMAX_LND, 12.f);
 
 /**
- * Minimum collective thrust in climb rate controlled modes
+ * 爬升速率控制模式下的最小总推力
  *
- * Too low thrust leads to loss of roll/pitch/yaw torque control authority.
- * With airmode enabled this parameters can be set to 0
- * while still keeping torque authority (see MC_AIRMODE).
+ * 推力过低会导致失去滚转、俯仰和偏航扭矩控制能力。
+ * 如果启用了空气模式（MC_AIRMODE），此参数可以设置为 0，同时保持扭矩控制能力。
  *
- * @unit norm
- * @min 0.05
- * @max 0.5
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Position Control
+ * @单位 规范化 (norm)
+ * @最小值 0.05
+ * @最大值 0.5
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_THR_MIN, 0.12f);
 
 /**
- * Maximum collective thrust in climb rate controlled modes
+ * 爬升速率控制模式下的最大总推力
  *
- * Limit allowed thrust e.g. for indoor test of overpowered vehicle.
+ * 例如，用于室内测试功率过大的车辆时限制允许的推力。
  *
- * @unit norm
- * @min 0
- * @max 1
- * @decimal 2
- * @increment 0.05
- * @group Multicopter Position Control
+ * @单位 规范化 (norm)
+ * @最小值 0
+ * @最大值 1
+ * @小数位 2
+ * @增量 0.05
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_THR_MAX, 1.f);
 
 /**
- * Acceleration to tilt coupling
+ * 加速度与倾斜解耦
  *
- * Set to decouple tilt from vertical acceleration.
+ * 设置为解耦倾斜与垂直加速度。
  *
- * @boolean
- * @group Multicopter Position Control
+ * @布尔值
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_INT32(MPC_ACC_DECOUPLE, 1);

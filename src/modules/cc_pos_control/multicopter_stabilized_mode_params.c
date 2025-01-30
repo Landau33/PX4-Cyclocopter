@@ -1,95 +1,58 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * Maximal tilt angle in Stabilized or Altitude mode
+ * 稳定模式或高度模式下的最大倾斜角
  *
- * @unit deg
- * @min 1
- * @max 70
- * @decimal 0
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 度 (deg)
+ * @最小值 1
+ * @最大值 70
+ * @小数位 0
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_MAN_TILT_MAX, 35.f);
 
 /**
- * Max manual yaw rate for Stabilized, Altitude, Position mode
+ * 稳定模式、高度模式、位置模式下的最大手动偏航速率
  *
- * @unit deg/s
- * @min 0
- * @max 400
- * @decimal 0
- * @increment 10
- * @group Multicopter Position Control
+ * @单位 度/秒 (deg/s)
+ * @最小值 0
+ * @最大值 400
+ * @小数位 0
+ * @增量 10
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_MAN_Y_MAX, 150.f);
 
 /**
- * Minimum collective thrust in Stabilized mode
+ * 稳定模式下的最小总推力
  *
- * The value is mapped to the lowest throttle stick position in Stabilized mode.
+ * 该值映射到稳定模式下油门操纵杆的最低位置。
  *
- * Too low collective thrust leads to loss of roll/pitch/yaw torque control authority.
- * Airmode is used to keep torque authority with zero thrust (see MC_AIRMODE).
+ * 推力过低会导致失去滚转、俯仰和偏航扭矩控制能力。
+ * 使用空气模式（参见 MC_AIRMODE）可以在零推力时保持扭矩控制能力。
  *
- * @unit norm
- * @min 0
- * @max 1
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Position Control
+ * @单位 规范化 (norm)
+ * @最小值 0
+ * @最大值 1
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_MANTHR_MIN, 0.08f);
 
 /**
- * Thrust curve mapping in Stabilized Mode
+ * 稳定模式下的推力曲线映射
  *
- * This parameter defines how the throttle stick input is mapped to collective thrust
- * in Stabilized mode.
+ * 此参数定义了在稳定模式下，油门操纵杆输入如何映射到总推力。
  *
- * In case the default is used ('Rescale to hover thrust'), the stick input is linearly
- * rescaled, such that a centered stick corresponds to the hover throttle (see MPC_THR_HOVER).
+ * 如果使用默认设置（'重新缩放至悬停推力'），则操纵杆输入将线性重新缩放，使得居中的操纵杆对应于悬停推力（参见 MPC_THR_HOVER）。
  *
- * Select 'No Rescale' to directly map the stick 1:1 to the output. This can be useful
- * in case the hover thrust is very low and the default would lead to too much distortion
- * (e.g. if hover thrust is set to 20%, then 80% of the upper thrust range is squeezed into the
- * upper half of the stick range).
+ * 选择 '不重新缩放' 可直接将操纵杆 1:1 映射到输出。这在悬停推力非常低且默认设置会导致过多失真的情况下很有用
+ * （例如，如果悬停推力设置为 20%，则上部推力范围的 80% 被压缩到操纵杆范围的上半部分）。
  *
- * Note: In case MPC_THR_HOVER is set to 50%, the modes 0 and 1 are the same.
+ * 注意：如果 MPC_THR_HOVER 设置为 50%，则模式 0 和 1 是相同的。
  *
- * @value 0 Rescale to hover thrust
- * @value 1 No Rescale
- * @group Multicopter Position Control
+ * @取值 0 重新缩放至悬停推力
+ * @取值 1 不重新缩放
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_INT32(MPC_THR_CURVE, 0);

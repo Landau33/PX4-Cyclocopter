@@ -1,36 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (C) 2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 #include <gtest/gtest.h>
 #include <Takeoff.hpp>
 #include <drivers/drv_hrt.h>
@@ -39,41 +6,42 @@
 TEST(TakeoffTest, Initialization)
 {
 	TakeoffHandling takeoff;
+	// 检查初始化状态是否为未武装
 	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::disarmed);
 }
 
 TEST(TakeoffTest, RegularTakeoffRamp)
 {
 	TakeoffHandling takeoff;
-	takeoff.setSpoolupTime(1.f);
-	takeoff.setTakeoffRampTime(2.f);
-	takeoff.generateInitialRampValue(CONSTANTS_ONE_G / 0.5f);
+	takeoff.setSpoolupTime(1.f); // 设置预热时间为 1 秒
+	takeoff.setTakeoffRampTime(2.f); // 设置起飞斜坡时间为 2 秒
+	takeoff.generateInitialRampValue(CONSTANTS_ONE_G / 0.5f); // 生成初始起飞斜坡值
 
-	// disarmed, landed, don't want takeoff
+	// 状态：未武装，着陆，不需要起飞
 	takeoff.updateTakeoffState(false, true, false, 1.f, false, 0);
-	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::disarmed);
+	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::disarmed); // 预期状态仍为未武装
 
-	// armed, not landed anymore, don't want takeoff
+	// 状态：武装，不再着陆，但仍然不需要起飞
 	takeoff.updateTakeoffState(true, false, false, 1.f, false, 500_ms);
-	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::spoolup);
+	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::spoolup); // 预期状态为预热
 
-	// armed, not landed, don't want takeoff yet, spoolup time passed
+	// 状态：武装，不着陆，不需要起飞，预热时间已过
 	takeoff.updateTakeoffState(true, false, false, 1.f, false, 2_s);
-	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::ready_for_takeoff);
+	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::ready_for_takeoff); // 预期状态为准备起飞
 
-	// armed, not landed, want takeoff
+	// 状态：武装，不着陆，需要起飞
 	takeoff.updateTakeoffState(true, false, true, 1.f, false, 3_s);
-	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::rampup);
+	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::rampup); // 预期状态为爬升斜坡
 
-	// armed, not landed, want takeoff, ramping up
+	// 状态：武装，不着陆，需要起飞，正在爬升斜坡
 	takeoff.updateTakeoffState(true, false, true, 1.f, false, 4_s);
-	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 0.f);
-	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), .5f);
-	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 1.f);
-	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 1.5f);
-	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 1.5f);
+	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 0.f); // 初始上升速度限制为 0
+	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), .5f); // 第一次更新后上升速度限制为 0.5 m/s
+	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 1.f); // 第二次更新后上升速度限制为 1 m/s
+	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 1.5f); // 第三次更新后上升速度限制为 1.5 m/s
+	EXPECT_FLOAT_EQ(takeoff.updateRamp(.5f, 1.5f), 1.5f); // 达到最终上升速度限制 1.5 m/s
 
-	// armed, not landed, want takeoff, rampup time passed
+	// 状态：武装，不着陆，需要起飞，爬升斜坡时间已过
 	takeoff.updateTakeoffState(true, false, true, 1.f, false, 6500_ms);
-	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::flight);
+	EXPECT_EQ(takeoff.getTakeoffState(), TakeoffState::flight); // 预期状态为飞行
 }

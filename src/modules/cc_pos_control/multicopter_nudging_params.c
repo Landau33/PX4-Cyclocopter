@@ -1,65 +1,31 @@
-/****************************************************************************
- *
- *   Copyright (c) 2023 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * Enable nudging based on user input during autonomous land routine
+ * 在自主降落过程中启用基于用户输入的微调功能
  *
- * Using stick input the vehicle can be moved horizontally and yawed.
- * The descend speed is amended:
- * stick full up - 0
- * stick centered - MPC_LAND_SPEED
- * stick full down - 2 * MPC_LAND_SPEED
+ * 使用操纵杆输入，车辆可以在水平方向上移动并调整偏航。
+ * 下降速度会根据操纵杆位置调整：
+ * 操纵杆向上推到底 - 0 m/s（停止下降）
+ * 操纵杆居中 - MPC_LAND_SPEED（默认降落速度）
+ * 操纵杆向下推到底 - 2 * MPC_LAND_SPEED（两倍默认降落速度）
  *
- * Manual override during auto modes has to be disabled to use this feature (see COM_RC_OVERRIDE).
+ * 要使用此功能，必须禁用自动模式下的手动覆盖（参见 COM_RC_OVERRIDE）。
  *
- * @min 0
- * @max 1
- * @value 0 Nudging disabled
- * @value 1 Nudging enabled
- * @group Multicopter Position Control
+ * @最小值 0
+ * @最大值 1
+ * @取值 0 禁用微调
+ * @取值 1 启用微调
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_INT32(MPC_LAND_RC_HELP, 0);
 
 /**
- * User assisted landing radius
+ * 用户辅助降落半径
  *
- * When nudging is enabled (see MPC_LAND_RC_HELP), this controls
- * the maximum allowed horizontal displacement from the original landing point.
+ * 当启用了微调功能（参见 MPC_LAND_RC_HELP）时，此参数控制从原始降落点允许的最大水平位移。
  *
- * @unit m
- * @min 0
- * @decimal 0
- * @increment 1
- * @group Multicopter Position Control
+ * @单位 米
+ * @最小值 0
+ * @小数位 0
+ * @增量 1
+ * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(MPC_LAND_RADIUS, 1000.f);

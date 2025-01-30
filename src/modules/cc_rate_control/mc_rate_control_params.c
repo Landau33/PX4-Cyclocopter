@@ -1,294 +1,257 @@
-/****************************************************************************
- *
- *   Copyright (c) 2013-2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
  * @file mc_rate_control_params.c
  *
- * Parameters for multicopter rate controller
+ * 多旋翼速率控制器的参数
  */
 
 /**
- * Roll rate P gain
+ * 滚转速率 P 增益
  *
- * Roll rate proportional gain, i.e. control output for angular speed error 1 rad/s.
+ * 滚转速率比例增益，即角速度误差为 1 rad/s 时的控制输出。
  *
- * @min 0.01
- * @max 0.5
- * @decimal 3
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.01
+ * @最大值 0.5
+ * @小数位 3
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_ROLLRATE_P, 0.15f);
 
 /**
- * Roll rate I gain
+ * 滚转速率 I 增益
  *
- * Roll rate integral gain. Can be set to compensate static thrust difference or gravity center offset.
+ * 滚转速率积分增益。可以设置以补偿静态推力差异或重心偏移。
  *
- * @min 0.0
- * @decimal 3
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 3
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_ROLLRATE_I, 0.2f);
 
 /**
- * Roll rate integrator limit
+ * 滚转速率积分器限制
  *
- * Roll rate integrator limit. Can be set to increase the amount of integrator available to counteract disturbances or reduced to improve settling time after large roll moment trim changes.
+ * 滚转速率积分器限制。可以设置以增加可用积分器的数量来对抗干扰，或者减少以改善大滚转力矩调整后的稳定时间。
  *
- * @min 0.0
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_RR_INT_LIM, 0.30f);
 
 /**
- * Roll rate D gain
+ * 滚转速率 D 增益
  *
- * Roll rate differential gain. Small values help reduce fast oscillations. If value is too big oscillations will appear again.
+ * 滚转速率微分增益。小值有助于减少快速振荡。如果值过大，振荡将再次出现。
  *
- * @min 0.0
- * @max 0.01
- * @decimal 4
- * @increment 0.0005
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @最大值 0.01
+ * @小数位 4
+ * @增量 0.0005
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_ROLLRATE_D, 0.003f);
 
 /**
- * Roll rate feedforward
+ * 滚转速率前馈
  *
- * Improves tracking performance.
+ * 改善跟踪性能。
  *
- * @min 0.0
- * @decimal 4
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 4
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_ROLLRATE_FF, 0.0f);
 
 /**
- * Roll rate controller gain
+ * 滚转速率控制器增益
  *
- * Global gain of the controller.
+ * 控制器的全局增益。
  *
- * This gain scales the P, I and D terms of the controller:
+ * 此增益缩放控制器的比例、积分和微分项：
  * output = MC_ROLLRATE_K * (MC_ROLLRATE_P * error
- * 			     + MC_ROLLRATE_I * error_integral
- * 			     + MC_ROLLRATE_D * error_derivative)
- * Set MC_ROLLRATE_P=1 to implement a PID in the ideal form.
- * Set MC_ROLLRATE_K=1 to implement a PID in the parallel form.
+ *                           + MC_ROLLRATE_I * error_integral
+ *                           + MC_ROLLRATE_D * error_derivative)
+ * 设置 MC_ROLLRATE_P=1 以实现理想的 PID 形式。
+ * 设置 MC_ROLLRATE_K=1 以实现并行形式的 PID。
  *
- * @min 0.01
- * @max 5.0
- * @decimal 4
- * @increment 0.0005
- * @group Multicopter Rate Control
+ * @最小值 0.01
+ * @最大值 5.0
+ * @小数位 4
+ * @增量 0.0005
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_ROLLRATE_K, 1.0f);
 
 /**
- * Pitch rate P gain
+ * 俯仰速率 P 增益
  *
- * Pitch rate proportional gain, i.e. control output for angular speed error 1 rad/s.
+ * 俯仰速率比例增益，即角速度误差为 1 rad/s 时的控制输出。
  *
- * @min 0.01
- * @max 0.6
- * @decimal 3
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.01
+ * @最大值 0.6
+ * @小数位 3
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_PITCHRATE_P, 0.15f);
 
 /**
- * Pitch rate I gain
+ * 俯仰速率 I 增益
  *
- * Pitch rate integral gain. Can be set to compensate static thrust difference or gravity center offset.
+ * 俯仰速率积分增益。可以设置以补偿静态推力差异或重心偏移。
  *
- * @min 0.0
- * @decimal 3
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 3
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_PITCHRATE_I, 0.2f);
 
 /**
- * Pitch rate integrator limit
+ * 俯仰速率积分器限制
  *
- * Pitch rate integrator limit. Can be set to increase the amount of integrator available to counteract disturbances or reduced to improve settling time after large pitch moment trim changes.
+ * 俯仰速率积分器限制。可以设置以增加可用积分器的数量来对抗干扰，或者减少以改善大俯仰力矩调整后的稳定时间。
  *
- * @min 0.0
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_PR_INT_LIM, 0.30f);
 
 /**
- * Pitch rate D gain
+ * 俯仰速率 D 增益
  *
- * Pitch rate differential gain. Small values help reduce fast oscillations. If value is too big oscillations will appear again.
+ * 俯仰速率微分增益。小值有助于减少快速振荡。如果值过大，振荡将再次出现。
  *
- * @min 0.0
- * @decimal 4
- * @increment 0.0005
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 4
+ * @增量 0.0005
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_PITCHRATE_D, 0.003f);
 
 /**
- * Pitch rate feedforward
+ * 俯仰速率前馈
  *
- * Improves tracking performance.
+ * 改善跟踪性能。
  *
- * @min 0.0
- * @decimal 4
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 4
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_PITCHRATE_FF, 0.0f);
 
 /**
- * Pitch rate controller gain
+ * 俯仰速率控制器增益
  *
- * Global gain of the controller.
+ * 控制器的全局增益。
  *
- * This gain scales the P, I and D terms of the controller:
+ * 此增益缩放控制器的比例、积分和微分项：
  * output = MC_PITCHRATE_K * (MC_PITCHRATE_P * error
- * 			     + MC_PITCHRATE_I * error_integral
- * 			     + MC_PITCHRATE_D * error_derivative)
- * Set MC_PITCHRATE_P=1 to implement a PID in the ideal form.
- * Set MC_PITCHRATE_K=1 to implement a PID in the parallel form.
+ *                           + MC_PITCHRATE_I * error_integral
+ *                           + MC_PITCHRATE_D * error_derivative)
+ * 设置 MC_PITCHRATE_P=1 以实现理想的 PID 形式。
+ * 设置 MC_PITCHRATE_K=1 以实现并行形式的 PID。
  *
- * @min 0.01
- * @max 5.0
- * @decimal 4
- * @increment 0.0005
- * @group Multicopter Rate Control
+ * @最小值 0.01
+ * @最大值 5.0
+ * @小数位 4
+ * @增量 0.0005
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_PITCHRATE_K, 1.0f);
 
 /**
- * Yaw rate P gain
+ * 偏航速率 P 增益
  *
- * Yaw rate proportional gain, i.e. control output for angular speed error 1 rad/s.
+ * 偏航速率比例增益，即角速度误差为 1 rad/s 时的控制输出。
  *
- * @min 0.0
- * @max 0.6
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @最大值 0.6
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_YAWRATE_P, 0.2f);
 
 /**
- * Yaw rate I gain
+ * 偏航速率 I 增益
  *
- * Yaw rate integral gain. Can be set to compensate static thrust difference or gravity center offset.
+ * 偏航速率积分增益。可以设置以补偿静态推力差异或重心偏移。
  *
- * @min 0.0
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_YAWRATE_I, 0.1f);
 
 /**
- * Yaw rate integrator limit
+ * 偏航速率积分器限制
  *
- * Yaw rate integrator limit. Can be set to increase the amount of integrator available to counteract disturbances or reduced to improve settling time after large yaw moment trim changes.
+ * 偏航速率积分器限制。可以设置以增加可用积分器的数量来对抗干扰，或者减少以改善大偏航力矩调整后的稳定时间。
  *
- * @min 0.0
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_YR_INT_LIM, 0.30f);
 
 /**
- * Yaw rate D gain
+ * 偏航速率 D 增益
  *
- * Yaw rate differential gain. Small values help reduce fast oscillations. If value is too big oscillations will appear again.
+ * 偏航速率微分增益。小值有助于减少快速振荡。如果值过大，振荡将再次出现。
  *
- * @min 0.0
- * @decimal 2
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 2
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_YAWRATE_D, 0.0f);
 
 /**
- * Yaw rate feedforward
+ * 偏航速率前馈
  *
- * Improves tracking performance.
+ * 改善跟踪性能。
  *
- * @min 0.0
- * @decimal 4
- * @increment 0.01
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @小数位 4
+ * @增量 0.01
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_YAWRATE_FF, 0.0f);
 
 /**
- * Yaw rate controller gain
+ * 偏航速率控制器增益
  *
- * Global gain of the controller.
+ * 控制器的全局增益。
  *
- * This gain scales the P, I and D terms of the controller:
+ * 此增益缩放控制器的比例、积分和微分项：
  * output = MC_YAWRATE_K * (MC_YAWRATE_P * error
- * 			     + MC_YAWRATE_I * error_integral
- * 			     + MC_YAWRATE_D * error_derivative)
- * Set MC_YAWRATE_P=1 to implement a PID in the ideal form.
- * Set MC_YAWRATE_K=1 to implement a PID in the parallel form.
+ *                          + MC_YAWRATE_I * error_integral
+ *                          + MC_YAWRATE_D * error_derivative)
+ * 设置 MC_YAWRATE_P=1 以实现理想的 PID 形式。
+ * 设置 MC_YAWRATE_K=1 以实现并行形式的 PID。
  *
- * @min 0.0
- * @max 5.0
- * @decimal 4
- * @increment 0.0005
- * @group Multicopter Rate Control
+ * @最小值 0.0
+ * @最大值 5.0
+ * @小数位 4
+ * @增量 0.0005
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_FLOAT(MC_YAWRATE_K, 1.0f);
 
 /**
- * Battery power level scaler
+ * 电池功率水平缩放
  *
- * This compensates for voltage drop of the battery over time by attempting to
- * normalize performance across the operating range of the battery. The copter
- * should constantly behave as if it was fully charged with reduced max acceleration
- * at lower battery percentages. i.e. if hover is at 0.5 throttle at 100% battery,
- * it will still be 0.5 at 60% battery.
+ * 这通过尝试在电池工作范围内标准化性能来补偿电池电压随时间的下降。多旋翼应始终表现得像完全充电一样，但在较低的电池百分比下具有较低的最大加速度。例如，如果悬停是在 100% 电池电量下的 0.5 油门，在 60% 电池电量下它仍然是 0.5 油门。
  *
- * @boolean
- * @group Multicopter Rate Control
+ * @布尔值
+ * @分组 多旋翼速率控制
  */
 PARAM_DEFINE_INT32(MC_BAT_SCALE_EN, 0);
