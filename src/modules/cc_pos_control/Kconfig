@@ -2,7 +2,7 @@ menuconfig MODULES_CC_POS_CONTROL
 	bool "cc_pos_control"
 	default n
 	---help---
-		Enable support for mc_pos_control
+		Enable support for cc_pos_control
 
 menuconfig USER_CC_POS_CONTROL
 	bool "cc_pos_control running as userspace module"

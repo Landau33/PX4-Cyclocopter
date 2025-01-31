@@ -7,8 +7,8 @@ px4_add_module(
 	MAIN mc_pos_control
 	COMPILE_FLAGS
 	SRCS
-		MulticopterPositionControl.cpp
-		MulticopterPositionControl.hpp
+		CyclocopterPositionControl.cpp
+		CyclocopterPositionControl.hpp
 	DEPENDS
 		GotoControl
 		PositionControl

@@ -113,7 +113,7 @@ private:
 
 		// 起飞 / 着陆参数
 		(ParamFloat<px4::params::COM_SPOOLUP_TIME>) _param_com_spoolup_time,  ///< 武装后电机预热时间
-		(ParamBool<px4::params::COM_THROW_EN>)      _param_com_throw_en,      ///< 投掷启动使能
+		(ParamBool<px4::params::COM_THROW_EN>)      _param_com_throw_en,      ///< 开启弹射启动
 		(ParamFloat<px4::params::MPC_TKO_RAMP_T>)   _param_mpc_tko_ramp_t,   ///< 平滑起飞斜坡时间常数
 		(ParamFloat<px4::params::MPC_TKO_SPEED>)    _param_mpc_tko_speed,     ///< 起飞爬升速度
 		(ParamFloat<px4::params::MPC_LAND_SPEED>)   _param_mpc_land_speed,    ///< 着陆下降速度
