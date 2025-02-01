@@ -60,6 +60,7 @@ void CyclocopterPositionControl::parameters_update(bool force)
 			// 参数线性插值更新
 			num_changed += _param_cpc_xy_acc.commit_no_notification(math::lerp(1.f, 15.f, responsiveness));
 			num_changed += _param_cpc_xy_acc_max.commit_no_notification(math::lerp(2.f, 15.f, responsiveness));
+			num_changed += _param_cpc_yaw_rate_max.commit_no_notification(math::lerp(80.f, 450.f, responsiveness));
 			num_changed += _param_cpc_z_acc_max_up.commit_no_notification(math::lerp(1.f, 15.f, responsiveness));
 			num_changed += _param_cpc_z_acc_max_down.commit_no_notification(math::lerp(0.8f, 15.f, responsiveness));
 			num_changed += _param_cpc_jerk_max.commit_no_notification(math::lerp(2.f, 50.f, responsiveness));

@@ -114,6 +114,8 @@ private:
 		// 总推力限制
 		(ParamFloat<px4::params::CPC_THR_MAX>)      	_param_cpc_thr_max,
 		(ParamFloat<px4::params::CPC_THR_MIN>)      	_param_cpc_thr_min,
+		// 最大偏航速率限制
+		(ParamFloat<px4::params::CPC_YAW_RATE_MAX>)    	_param_cpc_yaw_rate_max,
 
 		// 水平推力裕度
 		(ParamFloat<px4::params::CPC_XY_THR_MARG>)	_param_cpc_xy_thr_marg,
