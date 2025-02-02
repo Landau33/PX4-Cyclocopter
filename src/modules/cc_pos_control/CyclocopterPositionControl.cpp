@@ -141,8 +141,8 @@ void CyclocopterPositionControl::parameters_update(bool force)
 		_goto_control.setParamCpcXyAcc(_param_cpc_xy_acc.get());
 		_goto_control.setParamCpcZAccMaxUP(_param_cpc_z_acc_max_up.get());
 		_goto_control.setParamCpcZAccMaxDown(_param_cpc_z_acc_max_down.get());
-		_goto_control.setParamMpcXyErrMax(_param_cpc_xy_err_max.get());
-		_goto_control.setParamMpcXyVelMax(_param_cpc_xy_vel_max.get());
+		_goto_control.setParamCpcXyErrMax(_param_cpc_xy_err_max.get());
+		_goto_control.setParamCpcXyVelMax(_param_cpc_xy_vel_max.get());
 		// 配置起飞参数
 		_takeoff.setSpoolupTime(_param_com_spoolup_time.get());
 		_takeoff.setTakeoffRampTime(_param_cpc_tkof_ramp_t.get());

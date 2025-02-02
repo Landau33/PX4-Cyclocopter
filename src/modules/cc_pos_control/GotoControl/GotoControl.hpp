@@ -1,5 +1,5 @@
 /**
- * 一个用于平面多旋翼飞行器平滑位置和航向参考的类。
+ * 用于平面飞行器平滑位置和航向参考的类。
  *
  * 确保在第一次调用 update() 方法之前使用 setGotoConstraints() 设置约束条件
  */
@@ -58,17 +58,11 @@ public:
 	void update(const float dt, const matrix::Vector3f &position, const float heading);
 
 	// 从外部设置参数可以节省 300 字节的闪存空间
-	void setParamMpcAccHor(const float param_mpc_acc_hor) { _param_mpc_acc_hor = param_mpc_acc_hor; }
-	void setParamMpcAccDownMax(const float param_mpc_acc_down_max) { _param_mpc_acc_down_max = param_mpc_acc_down_max; }
-	void setParamMpcAccUpMax(const float param_mpc_acc_up_max) { _param_mpc_acc_up_max = param_mpc_acc_up_max; }
-	void setParamMpcJerkAuto(const float param_mpc_jerk_auto) { _position_smoothing.setMaxJerk(param_mpc_jerk_auto); }
-	void setParamMpcXyCruise(const float param_mpc_xy_cruise) { _param_mpc_xy_cruise = param_mpc_xy_cruise; }
-	void setParamMpcXyErrMax(const float param_mpc_xy_err_max) { _position_smoothing.setMaxAllowedHorizontalError(param_mpc_xy_err_max); }
-	void setParamMpcXyVelMax(const float param_mpc_xy_vel_max) { _position_smoothing.setMaxVelocityXY(param_mpc_xy_vel_max); }
-	void setParamMpcYawrautoMax(const float param_mpc_yawrauto_max) { _param_mpc_yawrauto_max = param_mpc_yawrauto_max; }
-	void setParamMpcYawrautoAcc(const float param_mpc_yawrauto_acc) { _param_mpc_yawrauto_acc = param_mpc_yawrauto_acc; }
-	void setParamMpcZVAutoDn(const float param_mpc_z_v_auto_dn) { _param_mpc_z_v_auto_dn = param_mpc_z_v_auto_dn; }
-	void setParamMpcZVAutoUp(const float param_mpc_z_v_auto_up) { _param_mpc_z_v_auto_up = param_mpc_z_v_auto_up; }
+	void setParamCpcXyAcc(const float param_cpc_xy_acc) { _param_cpc_xy_acc = param_cpc_xy_acc; }
+	void setParamCpcZAccMaxUP(const float param_cpc_z_acc_max_up) { _param_cpc_z_acc_max_up = param_cpc_z_acc_max_up; }
+	void setParamCpcZAccMaxDown(const float param_cpc_z_acc_max_down) { _param_cpc_z_acc_max_down = param_cpc_z_acc_max_down; }
+	void setParamCpcXyErrMax(const float param_cpc_xy_err_max) { _position_smoothing.setMaxAllowedHorizontalError(param_cpc_xy_err_max); }
+	void setParamCpcXyVelMax(const float param_cpc_xy_vel_max) { _position_smoothing.setMaxVelocityXY(param_cpc_xy_vel_max); }
 
 private:
 	/**
@@ -100,12 +94,7 @@ private:
 	// 标记上一次 update() 是否控制了航向
 	bool _controlling_heading{false};
 
-	float _param_mpc_acc_hor{0.f}; // 水平加速度最大值
-	float _param_mpc_acc_down_max{0.f}; // 最大垂直下降加速度
-	float _param_mpc_acc_up_max{0.f}; // 最大垂直上升加速度
-	float _param_mpc_xy_cruise{0.f}; // 巡航水平速度
-	float _param_mpc_yawrauto_max{0.f}; // 最大自动航向速率
-	float _param_mpc_yawrauto_acc{0.f}; // 最大自动航向加速度
-	float _param_mpc_z_v_auto_dn{0.f}; // 最大自动垂直下降速度
-	float _param_mpc_z_v_auto_up{0.f}; // 最大自动垂直上升速度
+	float _param_cpc_xy_acc{0.f}; // 水平加速度最大值
+	float _param_cpc_z_acc_max_up{0.f}; // 最大垂直上升加速度
+	float _param_cpc_z_acc_max_down{0.f}; // 最大垂直下降加速度
 };
