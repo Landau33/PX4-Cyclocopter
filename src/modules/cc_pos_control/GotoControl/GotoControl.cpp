@@ -14,7 +14,7 @@ bool GotoControl::checkForSetpoint(const hrt_abstime &now, const bool enabled)
 	const bool need_to_run = timestamp_initialized && no_timeout && enabled; // 确定是否需要运行
 
 	if (!need_to_run) {
-		_is_initialized = false; // 如果不需要运行，则重置初始化标志
+		_is_initialized = false;
 	}
 
 	return need_to_run;
@@ -33,19 +33,17 @@ void GotoControl::update(const float dt, const matrix::Vector3f &position, const
 	const Vector3f position_setpoint(_goto_setpoint_sub.get().position); // 获取位置设定点
 
 	if (!position_setpoint.isAllFinite()) {
-		// TODO: 错误消息
 		_need_smoother_reset = true; // 需要重置平滑器
 		return;
 	}
 
 	if (!position.isAllFinite()) {
-		// TODO: 错误消息
 		_need_smoother_reset = true; // 需要重置平滑器
 		return;
 	}
 
 	if (_need_smoother_reset) {
-		resetPositionSmoother(position); // 重置位置平滑器
+		resetPositionSmoother(position);
 	}
 
 	setPositionSmootherLimits(goto_setpoint); // 设置位置平滑器限制
@@ -99,7 +97,6 @@ void GotoControl::update(const float dt, const matrix::Vector3f &position, const
 void GotoControl::resetPositionSmoother(const matrix::Vector3f &position)
 {
 	if (!position.isAllFinite()) {
-		// TODO: 错误消息
 		_need_smoother_reset = true; // 需要重置平滑器
 		return;
 	}
@@ -114,7 +111,6 @@ void GotoControl::resetPositionSmoother(const matrix::Vector3f &position)
 void GotoControl::resetHeadingSmoother(const float heading)
 {
 	if (!PX4_ISFINITE(heading)) {
-		// TODO: 错误消息
 		_controlling_heading = false; // 清除控制航向标志
 		return;
 	}
@@ -126,18 +122,18 @@ void GotoControl::resetHeadingSmoother(const float heading)
 void GotoControl::setPositionSmootherLimits(const goto_setpoint_s &goto_setpoint)
 {
 	// 水平约束
-	float max_horizontal_speed = _param_mpc_xy_cruise; // 最大水平速度
-	float max_horizontal_accel = _param_mpc_acc_hor; // 最大水平加速度
+	float max_horizontal_speed = _param_cpc_xy_vel_max; // 最大水平速度
+	float max_horizontal_accel = _param_cpc_xy_acc_max; // 最大水平加速度
 
 	if (goto_setpoint.flag_set_max_horizontal_speed
 	    && PX4_ISFINITE(goto_setpoint.max_horizontal_speed)) {
 		max_horizontal_speed = math::constrain(goto_setpoint.max_horizontal_speed, 0.f,
-						       _param_mpc_xy_cruise); // 限制最大水平速度
+						       _param_cpc_xy_vel_max); // 限制最大水平速度
 
 		// 根据水平速度限制线性缩放水平加速度限制以保持平滑动态
 		if (!_position_smoothing.getCurrentVelocityXY().longerThan(max_horizontal_speed)) {
-			const float speed_scale = max_horizontal_speed / _param_mpc_xy_cruise;
-			max_horizontal_accel = math::constrain(_param_mpc_acc_hor * speed_scale, 0.f, _param_mpc_acc_hor);
+			const float speed_scale = max_horizontal_speed / _param_cpc_xy_vel_max;
+			max_horizontal_accel = math::constrain(_param_cpc_xy_acc_max * speed_scale, 0.f, _param_cpc_xy_acc_max);
 		}
 	}
 
@@ -145,12 +141,12 @@ void GotoControl::setPositionSmootherLimits(const goto_setpoint_s &goto_setpoint
 	_position_smoothing.setMaxAccelerationXY(max_horizontal_accel); // 设置最大水平加速度
 
 	// 垂直约束
-	float vehicle_max_vertical_speed = _param_mpc_z_v_auto_dn; // 最大垂直下降速度
-	float vehicle_max_vertical_accel = _param_mpc_acc_down_max; // 最大垂直下降加速度
+	float vehicle_max_vertical_speed = _param_cpc_z_vel_max_down; // 最大垂直下降速度
+	float vehicle_max_vertical_accel = _param_cpc_z_acc_max_down; // 最大垂直下降加速度
 
 	if (goto_setpoint.position[2] < _position_smoothing.getCurrentPositionZ()) { // 目标高度更高 -> 更负的 Z 轴值
-		vehicle_max_vertical_speed = _param_mpc_z_v_auto_up; // 最大垂直上升速度
-		vehicle_max_vertical_accel = _param_mpc_acc_up_max; // 最大垂直上升加速度
+		vehicle_max_vertical_speed = _param_cpc_z_vel_max_up; // 最大垂直上升速度
+		vehicle_max_vertical_accel = _param_cpc_z_acc_max_up; // 最大垂直上升加速度
 	}
 
 	float max_vertical_speed = vehicle_max_vertical_speed; // 最大垂直速度
@@ -172,16 +168,16 @@ void GotoControl::setPositionSmootherLimits(const goto_setpoint_s &goto_setpoint
 
 void GotoControl::setHeadingSmootherLimits(const goto_setpoint_s &goto_setpoint)
 {
-	float max_heading_rate = _param_mpc_yawrauto_max; // 最大航向速率
-	float max_heading_accel = _param_mpc_yawrauto_acc; // 最大航向加速度
+	float max_heading_rate = _param_cpc_yaw_rate_max; // 最大航向速率
+	float max_heading_accel = _param_cpc_yaw_acc_max; // 最大航向加速度
 
 	if (goto_setpoint.flag_set_max_heading_rate && PX4_ISFINITE(goto_setpoint.max_heading_rate)) {
-		max_heading_rate = math::constrain(goto_setpoint.max_heading_rate, 0.f, _param_mpc_yawrauto_max); // 限制最大航向速率
+		max_heading_rate = math::constrain(goto_setpoint.max_heading_rate, 0.f, _param_cpc_yaw_rate_max); // 限制最大航向速率
 
 		// 根据航向速率限制线性缩放航向加速度限制以保持平滑动态
 		if (fabsf(_heading_smoothing.getSmoothedHeadingRate()) <= max_heading_rate) {
-			const float rate_scale = max_heading_rate / _param_mpc_yawrauto_max;
-			max_heading_accel = math::constrain(_param_mpc_yawrauto_acc * rate_scale, 0.f, _param_mpc_yawrauto_acc);
+			const float rate_scale = max_heading_rate / _param_cpc_yaw_rate_max;
+			max_heading_accel = math::constrain(_param_cpc_yaw_acc_max * rate_scale, 0.f, _param_cpc_yaw_acc_max);
 		}
 	}
 

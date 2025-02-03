@@ -97,4 +97,6 @@ private:
 	float _param_cpc_xy_acc{0.f}; // 水平加速度最大值
 	float _param_cpc_z_acc_max_up{0.f}; // 最大垂直上升加速度
 	float _param_cpc_z_acc_max_down{0.f}; // 最大垂直下降加速度
+	float _param_cpc_yaw_rate_max{0.f} // 最大偏航速率
+	float _param_cpc_yaw_acc_max{0.f}; // 最大偏航加速度
 };
