@@ -38,7 +38,7 @@ PARAM_DEFINE_FLOAT(CPC_Z_VEL_MAX_UP, 3.f);
  * @增量 0.1
  * @小数位 1
  */
-PARAM_DEFINE_FLOAT(CPC_Z_VEL_MAX_DN, 1.5f);
+PARAM_DEFINE_FLOAT(CPC_Z_VEL_MAX_DOWN, 1.5f);
 
 /**
  * 空中最大倾斜角
