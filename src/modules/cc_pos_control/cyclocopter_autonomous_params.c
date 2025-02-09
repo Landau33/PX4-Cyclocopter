@@ -32,7 +32,6 @@ PARAM_DEFINE_FLOAT(CPC_XY_ACC, 3.f);
  * @最大值 10
  * @小数位 1
  * @增量 1
- * @分组 多旋翼位置控制
  */
 PARAM_DEFINE_FLOAT(CPC_XY_ERR_MAX, 2.f);
 
