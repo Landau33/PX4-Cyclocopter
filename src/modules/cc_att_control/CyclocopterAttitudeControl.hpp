@@ -32,8 +32,8 @@ class CyclocopterAttitudeControl : public ModuleBase<CyclocopterAttitudeControl>
 	public px4::WorkItem
 {
 public:
-	CyclocopterAttitudeControl(bool vtol = false); // 构造函数，可选参数 vtol 表示是否为 VTOL 模式
-	~CyclocopterAttitudeControl() override; // 析构函数
+	CyclocopterAttitudeControl();
+	~CyclocopterAttitudeControl() override;
 
 	/** @see ModuleBase */
 	static int task_spawn(int argc, char *argv[]); // 启动任务
@@ -109,33 +109,33 @@ private:
 	bool _reset_yaw_sp{true}; // 是否重置偏航设定点
 	bool _heading_good_for_control{true}; ///< 初始化为 true，以确保在本地位置未发布时锁定航向
 	bool _vehicle_type_rotary_wing{true}; // 是否为旋翼机类型
-	bool _vtol{false}; // 是否为 VTOL 模式
-	bool _vtol_tailsitter{false}; // 是否为尾座式 VTOL
-	bool _vtol_in_transition_mode{false}; // 是否处于 VTOL 过渡模式
 
 	uint8_t _quat_reset_counter{0}; // 四元数重置计数器
 
 	DEFINE_PARAMETERS(
-		(ParamInt<px4::params::MC_AIRMODE>)         _param_mc_airmode,        /**< 多旋翼空气模式 */
-		(ParamFloat<px4::params::MC_MAN_TILT_TAU>)  _param_mc_man_tilt_tau,   /**< 手动倾斜时间常数 */
 
-		(ParamFloat<px4::params::MC_ROLL_P>)        _param_mc_roll_p,         /**< 滚转比例增益 */
-		(ParamFloat<px4::params::MC_PITCH_P>)       _param_mc_pitch_p,        /**< 俯仰比例增益 */
-		(ParamFloat<px4::params::MC_YAW_P>)         _param_mc_yaw_p,          /**< 偏航比例增益 */
-		(ParamFloat<px4::params::MC_YAW_WEIGHT>)    _param_mc_yaw_weight,     /**< 偏航权重 */
+		/* AIRMODE核心作用是优化飞行器在低油门或高机动飞行时的姿态稳定性，
+		尤其是在油门接近最小值时（例如悬停、特技飞行或快速机动）。*/
+		(ParamInt<px4::params::CC_AIRMODE>)         	_param_cc_airmode,        /**< 多旋翼空气模式 */
+		(ParamFloat<px4::params::CC_MAN_TILT_TAU>)  	_param_cc_man_tilt_tau,   /**< 手动倾斜时间常数 */
 
-		(ParamFloat<px4::params::MC_ROLLRATE_MAX>)  _param_mc_rollrate_max,   /**< 最大滚转角速度 */
-		(ParamFloat<px4::params::MC_PITCHRATE_MAX>) _param_mc_pitchrate_max,  /**< 最大俯仰角速度 */
-		(ParamFloat<px4::params::MC_YAWRATE_MAX>)   _param_mc_yawrate_max,    /**< 最大偏航角速度 */
+		(ParamFloat<px4::params::CC_ROLL_P>)       	_param_cc_roll_p,         /**< 滚转比例增益 */
+		(ParamFloat<px4::params::CC_PITCH_P>)     	_param_cc_pitch_p,        /**< 俯仰比例增益 */
+		(ParamFloat<px4::params::CC_YAW_P>)         	_param_cc_yaw_p,          /**< 偏航比例增益 */
+		(ParamFloat<px4::params::CC_YAW_WEIGHT>)    	_param_cc_yaw_weight,     /**< 偏航权重 */
+
+		(ParamFloat<px4::params::CC_ROLL_RATE_MAX>)  	_param_cc_roll_rate_max,   /**< 最大滚转角速度 */
+		(ParamFloat<px4::params::CC_PITCH_RATE_MAX>) 	_param_cc_pitch_rate_max,  /**< 最大俯仰角速度 */
+		(ParamFloat<px4::params::CC_YAW_RATE_MAX>)   	_param_cc_yaw_rate_max,    /**< 最大偏航角速度 */
 
 		/* 自稳模式参数 */
-		(ParamFloat<px4::params::MPC_MAN_TILT_MAX>) _param_mpc_man_tilt_max,  /**< 手动飞行时允许的最大倾斜角 */
-		(ParamFloat<px4::params::MPC_MAN_Y_MAX>)    _param_mpc_man_y_max,     /**< 从操纵杆到偏航速率的缩放因子 */
-		(ParamFloat<px4::params::MPC_MANTHR_MIN>)   _param_mpc_manthr_min,    /**< 稳定模式下的最小油门 */
-		(ParamFloat<px4::params::MPC_THR_MAX>)      _param_mpc_thr_max,       /**< 稳定模式下的最大油门 */
-		(ParamFloat<px4::params::MPC_THR_HOVER>)    _param_mpc_thr_hover,     /**< 悬停时的油门 */
-		(ParamInt<px4::params::MPC_THR_CURVE>)      _param_mpc_thr_curve,     /**< 油门曲线行为 */
+		(ParamFloat<px4::params::CPC_MAN_TILT_MAX>)  	_param_cpc_man_tilt_max,  /**< 手动飞行时允许的最大倾斜角 */
+		(ParamFloat<px4::params::CPC_YAW_RATE_MAX>)  	_param_cpc_yaw_rate_max,  /**< 手动模式下最大偏航角速度 */
+		(ParamFloat<px4::params::CPC_THR_MIN>)       	_param_cpc_thr_min,    	  /**< 稳定模式下的最小油门 */
+		(ParamFloat<px4::params::CPC_THR_MAX>)       	_param_cpc_thr_max,       /**< 稳定模式下的最大油门 */
+		(ParamFloat<px4::params::CPC_THR_HOVER>)     	_param_cpc_thr_hover,     /**< 悬停时的油门 */
+		(ParamInt<px4::params::CPC_THR_CURVE>)      	_param_cpc_thr_curve,     /**< 油门曲线行为 */
 
-		(ParamFloat<px4::params::COM_SPOOLUP_TIME>) _param_com_spoolup_time   /**< 启动时间 */
+		(ParamFloat<px4::params::COM_SPOOLUP_TIME>) 	_param_com_spoolup_time   /**< 启动时间 */
 	)
 };

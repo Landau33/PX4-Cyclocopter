@@ -1,4 +1,4 @@
-#include "cc_att_control_main.hpp"
+#include "CyclocopterAttitudeControl.hpp"
 
 #include <drivers/drv_hrt.h>
 #include <mathlib/math/Limits.hpp>

@@ -1,0 +1,17 @@
+CyclocopterAttitudeControl.hpp
+
+MC_AIRMODE              | 	CC_AIRMODE
+MC_MAN_TILT_TAU         |	CC_MAN_TILT_TAU
+MC_ROLL_P               |	CC_ROLL_P
+MC_PITCH_P              |	CC_PITCH_P
+MC_YAW_P                |	CC_YAW_P
+MC_YAW_WEIGHT           |	CC_YAW_WEIGHT
+MC_ROLLRATE_MAX         |	CC_ROLL_RATE_MAX
+MC_PITCHRATE_MAX        |	CC_PITCH_RATE_MAX
+MC_YAWRATE_MAX          |	CC_YAW_RATE_MAX
+MPC_MAN_TILT_MAX        |	CPC_MAN_TILT_MAX
+MPC_MAN_Y_MAX           |	CPC_YAW_RATE_MAX
+MPC_MANTHR_MIN          |	CPC_THR_MIN
+MPC_THR_MAX             |	CPC_THR_MAX
+MPC_THR_HOVER           |	CPC_THR_HOVER
+MPC_THR_CURVE           |	CPC_THR_CURVE
