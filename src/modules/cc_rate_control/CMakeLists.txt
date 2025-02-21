@@ -1,11 +1,11 @@
 px4_add_module(
-	MODULE modules__mc_rate_control
-	MAIN mc_rate_control
+	MODULE modules__cc_rate_control
+	MAIN cc_rate_control
 	COMPILE_FLAGS
 		${MAX_CUSTOM_OPT_LEVEL}
 	SRCS
-		MulticopterRateControl.cpp
-		MulticopterRateControl.hpp
+		CyclocopterRateControl.cpp
+		CyclocopterRateControl.hpp
 	DEPENDS
 		circuit_breaker
 		mathlib
