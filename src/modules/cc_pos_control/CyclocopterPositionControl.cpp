@@ -509,7 +509,9 @@ int CyclocopterPositionControl::print_usage(const char *reason)
 		R"DESCR_STR(
 		### Description
 		The controller has two loops: a P loop for position error and a PID loop for velocity error.
+
 		Output of the velocity controller is thrust vector that is split to thrust direction.
+
 		)DESCR_STR");
 	PRINT_MODULE_USAGE_NAME("cc_pos_control", "controller");
 	PRINT_MODULE_USAGE_COMMAND("start");

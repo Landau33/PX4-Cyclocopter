@@ -293,7 +293,9 @@ int CyclocopterAttitudeControl::print_usage(const char *reason)
 		R"DESCR_STR(
 		### Description
 		The controller has a P loop for angular error.
+
 		It takes attitude setpoints (`vehicle_attitude_setpoint`) as inputs and outputs a rate setpoint.
+
 		)DESCR_STR");
 	PRINT_MODULE_USAGE_NAME("cc_att_control", "controller");
 	PRINT_MODULE_USAGE_COMMAND("start");
