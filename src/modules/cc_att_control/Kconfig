@@ -1,0 +1,12 @@
+menuconfig MODULES_CC_ATT_CONTROL
+	bool "cc_att_control"
+	default n
+	---help---
+		Enable support for cc_att_control
+
+menuconfig USER_CC_ATT_CONTROL
+	bool "cc_att_control running as userspace module"
+	default n
+	depends on BOARD_PROTECTED && MODULES_CC_ATT_CONTROL
+	---help---
+		Put cc_att_control in userspace memory

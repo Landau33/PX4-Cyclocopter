@@ -98,6 +98,12 @@ if(CONFIG_MODULES_VTOL_ATT_CONTROL)
 	)
 endif()
 
+if(CONFIG_MODULES_CC_ATT_CONTROL)
+	px4_add_romfs_files(
+		rc.cc_apps
+		rc.cc_defaults
+	)
+endif()
 
 if(CONFIG_MODULES_LOGGER)
 	px4_add_romfs_files(

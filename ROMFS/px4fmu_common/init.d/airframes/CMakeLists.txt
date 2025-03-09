@@ -136,6 +136,12 @@ if(CONFIG_MODULES_VTOL_ATT_CONTROL)
 	)
 endif()
 
+if(CONFIG_MODULES_CC_ATT_CONTROL)
+	px4_add_romfs_files(
+		13031_cyclocopter
+	)
+endif()
+
 if(CONFIG_MODULES_ROVER_POS_CONTROL)
 	px4_add_romfs_files(
 		50000_generic_ground_vehicle

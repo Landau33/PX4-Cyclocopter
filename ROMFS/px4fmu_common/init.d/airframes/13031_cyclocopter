@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# @name Cyclocopter
+#
+# @type Cyclocopter
+# @class Copter
+#
+# @output Motor1 motor 1
+# @output Motor2 motor 2
+# @output Motor3 motor 3
+# @output Motor4 motor 4
+# @output Servo1 servo 1
+# @output Servo2 servo 2
+# @output Servo3 servo 3
+# @output Servo4 servo 4
+
+. ${R}etc/init.d/rc.cyclocopter_defaults
+
+param set-default CA_ROTOR_COUNT 8
+
