@@ -66,7 +66,6 @@ enum class EffectivenessUpdateReason {
 	MOTOR_ACTIVATION_UPDATE = 2,
 };
 
-
 class ActuatorEffectiveness
 {
 public:

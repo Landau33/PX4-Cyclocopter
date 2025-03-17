@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# @name Cyclocopter
+#
+# @type Cyclocopter
+#
+
+. ${R}etc/init.d/rc.cc_defaults
+
+param set-default CA_AIRFRAME 13
+
+param set-default CA_ROTOR_COUNT 4
+
+@REM param set-default PWM_MAIN_FUNC1 101
+@REM param set-default PWM_MAIN_FUNC2 102
+@REM param set-default PWM_MAIN_FUNC3 103
+@REM param set-default PWM_MAIN_FUNC4 104
+@REM param set-default PWM_MAIN_FUNC5 204
+@REM param set-default PWM_MAIN_FUNC6 205
+@REM param set-default PWM_MAIN_FUNC7 201
+@REM param set-default PWM_MAIN_FUNC8 202
+@REM param set-default PWM_MAIN_FUNC9 203
