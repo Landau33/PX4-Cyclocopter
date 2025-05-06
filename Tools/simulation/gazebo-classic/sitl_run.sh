@@ -63,6 +63,8 @@ if [ "$model" == "" ] || [ "$model" == "none" ]; then
 	model="iris"
 fi
 
+model=cyclocopter_servo
+
 # kill process names that might stil
 # be running from last time
 pkill -x gazebo || true

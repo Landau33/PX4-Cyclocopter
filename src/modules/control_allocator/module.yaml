@@ -31,6 +31,7 @@ parameters:
                 11: Helicopter (tail Servo)
                 12: Helicopter (Coaxial)
                 13: Cyclocopter
+                14: Cyclocopter Servo
             default: 0
 
         CA_METHOD:
@@ -1157,17 +1158,26 @@ mixer:
                             show_as: 'true-if-positive'
                           - name: 'CA_ROTOR${i}_TILT'
                             label: 'Tilted by'
-                  - actuator_type: 'servo'
-                    group_label: 'Tilt Servos'
+                  # - actuator_type: 'servo'
+                  #   group_label: 'Tilt Servos'
+                  #   count: 4
+                  #   item_label_prefix: 'Tilt ${i}'
+
+            14: # Cyclocopter Servo
+                actuators:
+                  - actuator_type: 'motor'
                     count: 4
-                    item_label_prefix: 'Tilt ${i}'
                     per_item_parameters:
+                        standard:
+                            position: [ 'CA_ROTOR${i}_PX', 'CA_ROTOR${i}_PY', 'CA_ROTOR${i}_PZ' ]
                         extra:
-                          - name: 'CA_SV_TL${i}'
-                            label: 'Servo 0'
-                          - name: 'CA_SV_TL${i}'
-                            label: 'Servo 1'
-                          - name: 'CA_SV_TL${i}'
-                            label: 'Servo 2'
-                          - name: 'CA_SV_TL${i}'
-                            label: 'Servo 3'
+                          - name: 'CA_ROTOR·${i}_KM'
+                            label: 'Direction CCW'
+                            function: 'spin-dir'
+                            show_as: 'true-if-positive'
+                          - name: 'CA_ROTOR${i}_TILT'
+                            label: 'Tilted by'
+                  - actuator_type: 'servo'
+                    group_label: 'Servos'
+                    count: 4
+                    item_label_prefix: 'Servo ${i}'

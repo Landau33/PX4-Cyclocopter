@@ -5,7 +5,7 @@
 # NOTE: Script variables are declared/initialized/unset in the rcS script.
 #
 
-set VEHICLE_TYPE cyclocopter
+set VEHICLE_TYPE cc
 
 # MAV_TYPE_CYCLOCOPTER 23
 param set-default MAV_TYPE 2
@@ -16,6 +16,19 @@ then
 fi
 
 param set-default NAV_ACC_RAD 2
+
+param set-default CA_ROTOR0_KM 0.065
+param set-default CA_ROTOR1_KM 0.065
+param set-default CA_ROTOR2_KM 0.065
+param set-default CA_ROTOR3_KM 0.065
+param set-default CA_ROTOR0_PX 0.19
+param set-default CA_ROTOR0_PY 0.03
+param set-default CA_ROTOR1_PX -0.19
+param set-default CA_ROTOR1_PY -0.03
+param set-default CA_ROTOR2_PX 0.19
+param set-default CA_ROTOR2_PY -0.03
+param set-default CA_ROTOR3_PX -0.19
+param set-default CA_ROTOR3_PY 0.03
 
 param set-default RTL_RETURN_ALT 30
 param set-default RTL_DESCEND_ALT 10

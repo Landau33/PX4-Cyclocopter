@@ -1,53 +1,17 @@
-/****************************************************************************
- *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-/**
- * @file ActuatorEffectivenessRotors.hpp
- *
- * Actuator effectiveness computed from rotors position and orientation
- *
- * @author Julien Lecoeur <julien.lecoeur@gmail.com>
- */
-
 #include "ActuatorEffectivenessRotors.hpp"
 
 #include "ActuatorEffectivenessTilts.hpp"
 
+
 using namespace matrix;
 
+// 构造函数初始化了旋翼的有效性矩阵，包括位置、轴向、推力系数和力矩比等参数。
+// 参数通过 param_find 动态查找，并存储在 _param_handles 中。
+// 如果支持倾斜机构，则额外初始化倾斜索引。
 ActuatorEffectivenessRotors::ActuatorEffectivenessRotors(ModuleParams *parent, AxisConfiguration axis_config,
 		bool tilt_support)
 	: ModuleParams(parent), _axis_config(axis_config), _tilt_support(tilt_support)
+
 {
 	for (int i = 0; i < NUM_ROTORS_MAX; ++i) {
 		char buffer[17];
@@ -82,6 +46,9 @@ ActuatorEffectivenessRotors::ActuatorEffectivenessRotors(ModuleParams *parent, A
 	updateParams();
 }
 
+// 更新旋翼几何参数，包括位置、轴向、推力系数和力矩比。
+// 根据 _axis_config 配置不同的轴向（可配置、固定向前或固定向上）。
+// 如果支持倾斜机构，则更新倾斜索引。
 void ActuatorEffectivenessRotors::updateParams()
 {
 	ModuleParams::updateParams();
@@ -126,6 +93,9 @@ void ActuatorEffectivenessRotors::updateParams()
 	}
 }
 
+// 将旋翼添加到配置中。
+// 调用 computeEffectivenessMatrix 计算有效性矩阵。
+// 如果伺服执行器数量大于零，则返回错误，因为伺服执行器需要排在电机之后。
 bool
 ActuatorEffectivenessRotors::addActuators(Configuration &configuration)
 {
@@ -141,45 +111,62 @@ ActuatorEffectivenessRotors::addActuators(Configuration &configuration)
 	return true;
 }
 
+/**
+ * 计算旋翼的有效性矩阵。
+ *
+ * 该函数根据给定的几何信息，计算每个旋翼对整体推力和力矩的贡献，并填充到有效性矩阵中。
+ * 它考虑了多种条件，例如是否禁用螺旋桨扭矩、是否通过差分推力控制偏航、以及是否禁用三维推力等。
+ *
+ * @param geometry 包含旋翼几何信息的对象，包括位置、轴向、推力系数和力矩比等参数。
+ * @param effectiveness 要填充的有效性矩阵，表示每个执行器的效果。
+ * @param actuator_start_index 执行器在有效性矩阵中的起始索引。
+ * @return 返回处理的执行器数量。
+ */
 int
 ActuatorEffectivenessRotors::computeEffectivenessMatrix(const Geometry &geometry,
 		EffectivenessMatrix &effectiveness, int actuator_start_index)
 {
 	int num_actuators = 0;
 
+	// 遍历所有旋翼
 	for (int i = 0; i < geometry.num_rotors; i++) {
 
+		// 检查当前索引是否超出总执行器数量
 		if (i + actuator_start_index >= NUM_ACTUATORS) {
 			break;
 		}
 
+		// 增加执行器计数
 		++num_actuators;
 
-		// Get rotor axis
+		// 获取旋翼轴向
 		Vector3f axis = geometry.rotors[i].axis;
+		// std::printf("Axis %d: (%.2f, %.2f, %.2f)\n", i, static_cast<double>(axis(0)), static_cast<double>(axis(1)), static_cast<double>(axis(2)));
 
-		// Normalize axis
+		// 归一化轴向
 		float axis_norm = axis.norm();
 
 		if (axis_norm > FLT_EPSILON) {
 			axis /= axis_norm;
 
 		} else {
-			// Bad axis definition, ignore this rotor
+			// 如果轴向定义无效，则忽略该旋翼
 			continue;
 		}
 
-		// Get rotor position
+		// 获取旋翼位置
 		const Vector3f &position = geometry.rotors[i].position;
 
-		// Get coefficients
+		// 获取系数
 		float ct = geometry.rotors[i].thrust_coef;
 		float km = geometry.rotors[i].moment_ratio;
 
+		// 如果禁用螺旋桨扭矩，则将力矩比设置为零
 		if (geometry.propeller_torque_disabled) {
 			km = 0.f;
 		}
 
+		// 如果仅禁用非向上方向的螺旋桨扭矩，则检查轴向是否向上
 		if (geometry.propeller_torque_disabled_non_upwards) {
 			bool upwards = fabsf(axis(0)) < 0.1f && fabsf(axis(1)) < 0.1f && axis(2) < -0.5f;
 
@@ -188,33 +175,44 @@ ActuatorEffectivenessRotors::computeEffectivenessMatrix(const Geometry &geometry
 			}
 		}
 
+		// 如果推力系数接近零，则跳过该旋翼
 		if (fabsf(ct) < FLT_EPSILON) {
 			continue;
 		}
 
-		// Compute thrust generated by this rotor
+		// 计算该旋翼产生的推力
 		matrix::Vector3f thrust = ct * axis;
-
-		// Compute moment generated by this rotor
+		// std::printf("拉力方向 %d: (%.2f, %.2f, %.2f)\n", i, static_cast<double>(axis(0)), static_cast<double>(axis(1)), static_cast<double>(axis(2)));
+		// std::printf("推力 %d: (%.2f, %.2f, %.2f)\n", i, static_cast<double>(thrust(0)), static_cast<double>(thrust(1)), static_cast<double>(thrust(2)));
 		matrix::Vector3f moment = ct * position.cross(axis) - ct * km * axis;
 
-		// Fill corresponding items in effectiveness matrix
+		// 计算该旋翼产生的力矩
+		if (isCyclocopter) {
+			matrix::Vector3f cc_axis(0, 1, 0);
+			if (i == 1 or i == 2){
+				cc_axis = matrix::Vector3f(0, -1, 0);
+			}
+			// position.cross(axis)：位置向量与推力方向的叉乘，得到力臂力矩方向
+			// matrix::Vector3f moment1 = ct * position.cross(axis);
+			// matrix::Vector3f moment2 = - ct * km * cc_axis;
+			moment = ct * position.cross(axis) - ct * km * cc_axis;
+			// std::printf("推力力矩 %d: (%.2f, %.2f, %.2f)\n", i, static_cast<double>(moment1(0)), static_cast<double>(moment1(1)), static_cast<double>(moment1(2)));
+			// std::printf("电机反扭矩 %d: (%.2f, %.2f, %.2f)\n", i, static_cast<double>(moment2(0)), static_cast<double>(moment2(1)), static_cast<double>(moment2(2)));
+		}
+
+		// 填充有效性矩阵中的对应项
 		for (size_t j = 0; j < 3; j++) {
 			effectiveness(j, i + actuator_start_index) = moment(j);
 			effectiveness(j + 3, i + actuator_start_index) = thrust(j);
 		}
 
+		// 如果禁用通过差分推力控制偏航，则将偏航力矩设置为零
 		if (geometry.yaw_by_differential_thrust_disabled) {
-			// set yaw effectiveness to 0 if yaw is controlled by other means (e.g. tilts)
 			effectiveness(2, i + actuator_start_index) = 0.f;
 		}
 
+		// 如果禁用三维推力，则仅保留 z 方向的推力
 		if (geometry.three_dimensional_thrust_disabled) {
-			// Special case tiltrotor: instead of passing a 3D thrust vector (that would mostly have a x-component in FW, and z in MC),
-			// pass the vector magnitude as z-component, plus the collective tilt. Passing 3D thrust plus tilt is not feasible as they
-			// can't be allocated independently, and with the current controller it's not possible to have collective tilt calculated
-			// by the allocator directly.
-
 			effectiveness(0 + 3, i + actuator_start_index) = 0.f;
 			effectiveness(1 + 3, i + actuator_start_index) = 0.f;
 			effectiveness(2 + 3, i + actuator_start_index) = -ct;
@@ -224,6 +222,8 @@ ActuatorEffectivenessRotors::computeEffectivenessMatrix(const Geometry &geometry
 	return num_actuators;
 }
 
+// 根据倾斜机构更新旋翼轴向。
+// 如果旋翼没有关联的倾斜机构，则标记为非倾斜旋翼。
 uint32_t ActuatorEffectivenessRotors::updateAxisFromTilts(const ActuatorEffectivenessTilts &tilts,
 		float collective_tilt_control)
 {
@@ -307,3 +307,5 @@ ActuatorEffectivenessRotors::getEffectivenessMatrix(Configuration &configuration
 
 	return addActuators(configuration);
 }
+
+bool ActuatorEffectivenessRotors::isCyclocopter = false;

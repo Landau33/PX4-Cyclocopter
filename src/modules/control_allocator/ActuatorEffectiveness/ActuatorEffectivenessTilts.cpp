@@ -1,37 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (c) 2021 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-
 #include "ActuatorEffectivenessTilts.hpp"
 
 #include <px4_platform_common/log.h>
@@ -39,6 +5,8 @@
 
 using namespace matrix;
 
+// 构造函数，初始化倾斜机构的有效性矩阵。
+// 初始化过程中，通过参数查找动态获取每个倾斜机构的控制、最小角度、最大角度和倾斜方向等参数。
 ActuatorEffectivenessTilts::ActuatorEffectivenessTilts(ModuleParams *parent)
 	: ModuleParams(parent)
 {
@@ -58,6 +26,9 @@ ActuatorEffectivenessTilts::ActuatorEffectivenessTilts(ModuleParams *parent)
 	updateParams();
 }
 
+// 更新倾斜机构的参数。
+// 从参数中读取倾斜机构的数量，并为每个倾斜机构读取其控制类型、倾斜方向、最小和最大角度。
+// 将角度从度数转换为弧度，并初始化扭矩向量。
 void ActuatorEffectivenessTilts::updateParams()
 {
 	ModuleParams::updateParams();
@@ -77,13 +48,22 @@ void ActuatorEffectivenessTilts::updateParams()
 		param_get(_param_handles[i].min_angle, &_params[i].min_angle);
 		param_get(_param_handles[i].max_angle, &_params[i].max_angle);
 
+		// 角度转换为弧度
 		_params[i].min_angle = math::radians(_params[i].min_angle);
 		_params[i].max_angle = math::radians(_params[i].max_angle);
-
+		// 初始化扭矩向量
 		_torque[i].setZero();
 	}
 }
 
+/**
+ * 将倾斜机构添加到配置中。
+ *
+ * 对于每个倾斜机构，调用 addActuator 方法将其添加到配置中。
+ *
+ * @param configuration 配置对象，用于存储执行器信息。
+ * @return 返回 true 表示成功添加所有执行器。
+ */
 bool ActuatorEffectivenessTilts::addActuators(Configuration &configuration)
 {
 	for (int i = 0; i < _count; i++) {
@@ -93,24 +73,37 @@ bool ActuatorEffectivenessTilts::addActuators(Configuration &configuration)
 	return true;
 }
 
+/**
+ * 更新倾斜机构的扭矩符号。
+ *
+ * 根据旋翼的位置和倾斜方向计算偏航扭矩符号，并根据倾斜方向更新俯仰扭矩符号。
+ *
+ * @param geometry 旋翼几何信息。
+ * @param disable_pitch 是否禁用俯仰控制。
+ */
 void ActuatorEffectivenessTilts::updateTorqueSign(const ActuatorEffectivenessRotors::Geometry &geometry,
 		bool disable_pitch)
 {
+	// 遍历所有电机
 	for (int i = 0; i < geometry.num_rotors; ++i) {
 		int tilt_index = geometry.rotors[i].tilt_index;
 
+		// 检查舵机索引是否有效；如果无效，跳过当前旋翼。
 		if (tilt_index == -1 || tilt_index >= _count) {
 			continue;
 		}
 
+
 		if (_params[tilt_index].control == Control::Yaw || _params[tilt_index].control == Control::YawAndPitch) {
 
+			// 通过检查电机位置和倾斜方向来确定偏航扭矩符号。
+            		// 将位置绕 z 轴旋转 -tilt_direction，然后检查 y 坐标的符号。
 			// Find the yaw torque sign by checking the motor position and tilt direction.
 			// Rotate position by -tilt_direction around z, then check the sign of y pos
 			float tilt_direction = math::radians((float)_params[tilt_index].tilt_direction);
 			Vector3f rotated_pos = Dcmf{Eulerf{0.f, 0.f, -tilt_direction}} * geometry.rotors[i].position;
-
-			if (rotated_pos(1) < -0.01f) { // add minimal margin
+			// 根据旋转后的位置设置偏航扭矩符号。
+			if (rotated_pos(1) < -0.01f) { // 添加最小边界
 				_torque[tilt_index](2) = 1.f;
 
 			} else if (rotated_pos(1) > 0.01f) {
@@ -118,9 +111,12 @@ void ActuatorEffectivenessTilts::updateTorqueSign(const ActuatorEffectivenessRot
 			}
 		}
 
+		// 如果未禁用俯仰控制，确定参与俯仰控制的旋翼的俯仰扭矩符号。
 		if (!disable_pitch && (_params[tilt_index].control == Control::Pitch
 				       || _params[tilt_index].control == Control::YawAndPitch)) {
+			// 根据倾斜方向判断旋翼是否向前倾斜。
 			bool tilting_forwards = (int)_params[tilt_index].tilt_direction < 90 || (int)_params[tilt_index].tilt_direction > 270;
+			// 根据倾斜方向设置俯仰扭矩符号。
 			_torque[tilt_index](1) = tilting_forwards ? -1.f : 1.f;
 		}
 

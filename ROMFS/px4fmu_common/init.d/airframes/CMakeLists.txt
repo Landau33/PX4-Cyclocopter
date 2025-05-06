@@ -139,6 +139,7 @@ endif()
 if(CONFIG_MODULES_CC_ATT_CONTROL)
 	px4_add_romfs_files(
 		13031_cyclocopter
+		13032_cyclocopter_servo
 	)
 endif()
 

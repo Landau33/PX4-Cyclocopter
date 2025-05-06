@@ -2,19 +2,45 @@
 #
 # @name Cyclocopter
 #
-# @type Cyclocopter
-# @class Copter
+# @class Cyclocopter
 #
-# @output Motor1 motor 1
-# @output Motor2 motor 2
-# @output Motor3 motor 3
-# @output Motor4 motor 4
-# @output Servo1 servo 1
-# @output Servo2 servo 2
-# @output Servo3 servo 3
-# @output Servo4 servo 4
+# @type Cyclocopter
+#
 
-. ${R}etc/init.d/rc.cyclocopter_defaults
+. ${R}etc/init.d/rc.cc_defaults
 
-param set-default CA_ROTOR_COUNT 8
+param set-default CA_AIRFRAME 13
 
+param set-default CA_ROTOR_COUNT 4
+param set-default CA_ROTOR0_PX 0.19
+param set-default CA_ROTOR0_PY 0.03
+param set-default CA_ROTOR0_KM 0.05
+param set-default CA_ROTOR1_PX -0.19
+param set-default CA_ROTOR1_PY -0.03
+param set-default CA_ROTOR1_KM 0.05
+param set-default CA_ROTOR2_PX 0.19
+param set-default CA_ROTOR2_PY -0.03
+param set-default CA_ROTOR2_KM -0.05
+param set-default CA_ROTOR3_PX -0.19
+param set-default CA_ROTOR3_PY 0.03
+param set-default CA_ROTOR3_KM -0.05
+
+# param set-default PWM_MAIN_FUNC1 101
+# param set-default PWM_MAIN_FUNC2 102
+# param set-default PWM_MAIN_FUNC3 103
+# param set-default PWM_MAIN_FUNC4 104
+
+param set SYS_HITL 1
+
+param set UAVCAN_ENABLE 0
+
+# disable some checks to allow to fly
+# - without real battery
+param set-default CBRK_SUPPLY_CHK 894281
+# - without safety switch
+param set-default CBRK_IO_SAFETY 22027
+
+param set-default HIL_ACT_FUNC1 101
+param set-default HIL_ACT_FUNC2 102
+param set-default HIL_ACT_FUNC3 103
+param set-default HIL_ACT_FUNC4 104

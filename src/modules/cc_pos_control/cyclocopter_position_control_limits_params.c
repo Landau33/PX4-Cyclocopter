@@ -79,7 +79,7 @@ PARAM_DEFINE_FLOAT(CPC_TILTMAX_LD, 12.f);
  * @小数位 2
  * @增量 0.01
  */
-PARAM_DEFINE_FLOAT(CPC_THR_MIN, 0.12f);
+PARAM_DEFINE_FLOAT(CPC_THR_MIN, 0.2f);
 
 /**
  * 爬升速率控制模式下的最大总推力

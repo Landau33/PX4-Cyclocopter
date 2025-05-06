@@ -128,20 +128,32 @@ bool ActuatorEffectivenessHelicopter::getEffectivenessMatrix(Configuration &conf
 	return true;
 }
 
+// 更新直升机执行器效应的有效性
+// 该函数根据控制设定点更新执行器设定点，并进行饱和检查
+// 参数:
+// - control_sp: 控制设定点向量，包含各个控制轴的设定值
+// - matrix_index: 执行器矩阵索引，用于选择特定的执行器配置
+// - actuator_sp: 执行器设定点向量，将被更新以反映新的控制设定点
+// - actuator_min: 执行器最小限制向量，用于饱和检查
+// - actuator_max: 执行器最大限制向量，用于饱和检查
 void ActuatorEffectivenessHelicopter::updateSetpoint(const matrix::Vector<float, NUM_AXES> &control_sp,
 		int matrix_index, ActuatorVector &actuator_sp, const matrix::Vector<float, NUM_ACTUATORS> &actuator_min,
 		const matrix::Vector<float, NUM_ACTUATORS> &actuator_max)
 {
+	// 初始化饱和标志
 	_saturation_flags = {};
 
 	// throttle/collective pitch curve
+	// 计算油门和总距
 	const float throttle = math::interpolateN(-control_sp(ControlAxis::THRUST_Z),
 			       _geometry.throttle_curve) * throttleSpoolupProgress();
 	const float collective_pitch = math::interpolateN(-control_sp(ControlAxis::THRUST_Z), _geometry.pitch_curve);
 
 	// actuator mapping
+	// 根据主电机是否启动来设置油门执行器设定点
 	actuator_sp(0) = mainMotorEnaged() ? throttle : NAN;
 
+	// 计算航向执行器设定点，并进行饱和检查
 	actuator_sp(1) = control_sp(ControlAxis::YAW) * _geometry.yaw_sign
 			 + fabsf(collective_pitch - _geometry.yaw_collective_pitch_offset) * _geometry.yaw_collective_pitch_scale
 			 + throttle * _geometry.yaw_throttle_scale;
@@ -154,6 +166,7 @@ void ActuatorEffectivenessHelicopter::updateSetpoint(const matrix::Vector<float,
 		setSaturationFlag(_geometry.yaw_sign, _saturation_flags.yaw_pos, _saturation_flags.yaw_neg);
 	}
 
+	// 计算变距伺服执行器设定点，并进行饱和检查
 	for (int i = 0; i < _geometry.num_swash_plate_servos; i++) {
 		float roll_coeff = sinf(_geometry.swash_plate_servos[i].angle) * _geometry.swash_plate_servos[i].arm_length;
 		float pitch_coeff = cosf(_geometry.swash_plate_servos[i].angle) * _geometry.swash_plate_servos[i].arm_length;
@@ -162,7 +175,7 @@ void ActuatorEffectivenessHelicopter::updateSetpoint(const matrix::Vector<float,
 				- control_sp(ControlAxis::ROLL) * roll_coeff
 				+ _geometry.swash_plate_servos[i].trim;
 
-		// Saturation check for roll & pitch
+		// Saturation check for roll & pitch饱和
 		if (actuator_sp(_first_swash_plate_servo_index + i) < actuator_min(_first_swash_plate_servo_index + i)) {
 			setSaturationFlag(roll_coeff, _saturation_flags.roll_pos, _saturation_flags.roll_neg);
 			setSaturationFlag(pitch_coeff, _saturation_flags.pitch_neg, _saturation_flags.pitch_pos);
@@ -186,6 +199,14 @@ bool ActuatorEffectivenessHelicopter::mainMotorEnaged()
 	return _main_motor_engaged;
 }
 
+/**
+ * @brief 计算直升机油门杆上升进度
+ *
+ * 该函数根据直升机的武装状态和自上次武装以来的时间，计算油门杆上升的进度。
+ * 它用于确定直升机在起飞过程中发动机的加速进度。
+ *
+ * @return float 表示油门杆上升进度的浮点数，范围从0到1，1表示完全加速。
+ */
 float ActuatorEffectivenessHelicopter::throttleSpoolupProgress()
 {
 	vehicle_status_s vehicle_status;
@@ -205,7 +226,6 @@ float ActuatorEffectivenessHelicopter::throttleSpoolupProgress()
 	return 1.f;
 }
 
-
 void ActuatorEffectivenessHelicopter::setSaturationFlag(float coeff, bool &positive_flag, bool &negative_flag)
 {
 	if (coeff > 0.f) {
@@ -218,6 +238,16 @@ void ActuatorEffectivenessHelicopter::setSaturationFlag(float coeff, bool &posit
 	}
 }
 
+/**
+ * @brief 获取未分配的控制力矩和推力
+ *
+ * 根据饱和标志设置未分配的控制力矩和推力。该函数旨在向速率控制器提供反馈，
+ * 指示哪些控制轴处于饱和状态。饱和状态可以是正饱和（表示过量的正控制输出），
+ * 负饱和（表示过量的负控制输出）或无饱和。
+ *
+ * @param matrix_index 矩阵索引，用于选择不同的控制分配矩阵（未使用）
+ * @param status 控制分配状态引用，用于存储未分配的控制力矩和推力
+ */
 void ActuatorEffectivenessHelicopter::getUnallocatedControl(int matrix_index, control_allocator_status_s &status)
 {
 	// Note: the values '-1', '1' and '0' are just to indicate a negative,

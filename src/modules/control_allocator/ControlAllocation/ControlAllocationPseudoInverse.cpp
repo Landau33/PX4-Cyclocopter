@@ -1,44 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (c) 2019 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-/**
- * @file ControlAllocationPseudoInverse.hpp
- *
- * Simple Control Allocation Algorithm
- *
- * @author Julien Lecoeur <julien.lecoeur@gmail.com>
- */
-
 #include "ControlAllocationPseudoInverse.hpp"
 
 void
@@ -47,24 +6,34 @@ ControlAllocationPseudoInverse::setEffectivenessMatrix(
 	const ActuatorVector &actuator_trim, const ActuatorVector &linearization_point, int num_actuators,
 	bool update_normalization_scale)
 {
+	// 设置效果矩阵、执行器零位、线性化点和执行器数量
 	ControlAllocation::setEffectivenessMatrix(effectiveness, actuator_trim, linearization_point, num_actuators,
 			update_normalization_scale);
+	// 标记需要更新伪逆矩阵
 	_mix_update_needed = true;
+	// 根据参数设置是否需要更新归一化矩阵
 	_normalization_needs_update = update_normalization_scale;
 }
 
 void
 ControlAllocationPseudoInverse::updatePseudoInverse()
 {
+	// 如果需要更新伪逆矩阵
 	if (_mix_update_needed) {
+		// 计算效果矩阵的伪逆矩阵
 		matrix::geninv(_effectiveness, _mix);
 
+		// 如果需要更新归一化矩阵且没有执行器故障
 		if (_normalization_needs_update && !_had_actuator_failure) {
+			// 更新控制分配矩阵的缩放因子
 			updateControlAllocationMatrixScale();
+			// 标记已经更新归一化矩阵
 			_normalization_needs_update = false;
 		}
 
+		// 归一化控制分配矩阵
 		normalizeControlAllocationMatrix();
+		// 标记已经更新伪逆矩阵
 		_mix_update_needed = false;
 	}
 }
@@ -72,12 +41,13 @@ ControlAllocationPseudoInverse::updatePseudoInverse()
 void
 ControlAllocationPseudoInverse::updateControlAllocationMatrixScale()
 {
-	// Same scale on roll and pitch
+	// 滚转和俯仰缩放相同比例
 	if (_normalize_rpy) {
 
 		int num_non_zero_roll_torque = 0;
 		int num_non_zero_pitch_torque = 0;
 
+		// 统计对滚转和俯仰有贡献的执行器数量
 		for (int i = 0; i < _num_actuators; i++) {
 
 			if (fabsf(_mix(i, 0)) > 1e-3f) {
@@ -89,22 +59,22 @@ ControlAllocationPseudoInverse::updateControlAllocationMatrixScale()
 			}
 		}
 
+		// 计算滚转和俯仰的缩放
 		float roll_norm_scale = 1.f;
-
 		if (num_non_zero_roll_torque > 0) {
 			roll_norm_scale = sqrtf(_mix.col(0).norm_squared() / (num_non_zero_roll_torque / 2.f));
 		}
 
 		float pitch_norm_scale = 1.f;
-
 		if (num_non_zero_pitch_torque > 0) {
 			pitch_norm_scale = sqrtf(_mix.col(1).norm_squared() / (num_non_zero_pitch_torque / 2.f));
 		}
 
+		// 设置滚转和俯仰的缩放为两者中的较大值
 		_control_allocation_scale(0) = fmaxf(roll_norm_scale, pitch_norm_scale);
 		_control_allocation_scale(1) = _control_allocation_scale(0);
 
-		// Scale yaw separately
+		// 单独计算偏航的缩放
 		_control_allocation_scale(2) = _mix.col(2).max();
 
 	} else {
@@ -113,14 +83,14 @@ ControlAllocationPseudoInverse::updateControlAllocationMatrixScale()
 		_control_allocation_scale(2) = 1.f;
 	}
 
-	// Scale thrust by the sum of the individual thrust axes, and use the scaling for the Z axis if there's no actuators
-	// (for tilted actuators)
+	// 按单个推力轴的总和缩放推力，如果没有执行器，则使用Z轴的缩放
 	_control_allocation_scale(THRUST_Z) = 1.f;
 
 	for (int axis_idx = 2; axis_idx >= 0; --axis_idx) {
 		int num_non_zero_thrust = 0;
 		float norm_sum = 0.f;
 
+		// 统计对推力有贡献的执行器数量并计算其范数之和
 		for (int i = 0; i < _num_actuators; i++) {
 			float norm = fabsf(_mix(i, 3 + axis_idx));
 			norm_sum += norm;
@@ -129,7 +99,7 @@ ControlAllocationPseudoInverse::updateControlAllocationMatrixScale()
 				++num_non_zero_thrust;
 			}
 		}
-
+		// 计算推力的缩放因子
 		if (num_non_zero_thrust > 0) {
 			_control_allocation_scale(3 + axis_idx) = norm_sum / num_non_zero_thrust;
 
@@ -142,6 +112,7 @@ ControlAllocationPseudoInverse::updateControlAllocationMatrixScale()
 void
 ControlAllocationPseudoInverse::normalizeControlAllocationMatrix()
 {
+	// 根据缩放因子归一化控制分配矩阵
 	if (_control_allocation_scale(0) > FLT_EPSILON) {
 		_mix.col(0) /= _control_allocation_scale(0);
 		_mix.col(1) /= _control_allocation_scale(1);
@@ -157,8 +128,7 @@ ControlAllocationPseudoInverse::normalizeControlAllocationMatrix()
 		_mix.col(5) /= _control_allocation_scale(5);
 	}
 
-	// Set all the small elements to 0 to avoid issues
-	// in the control allocation algorithms
+	// 将控制分配矩阵中小于阈值的元素设为0
 	for (int i = 0; i < _num_actuators; i++) {
 		for (int j = 0; j < NUM_AXES; j++) {
 			if (fabsf(_mix(i, j)) < 1e-3f) {
@@ -177,5 +147,10 @@ ControlAllocationPseudoInverse::allocate()
 	_prev_actuator_sp = _actuator_sp;
 
 	// Allocate
+	// _actuator_trim：执行器的零位点，即执行器在没有控制输入时的默认值。
+	// _control_sp：控制目标，即期望的控制量（例如期望的姿态或力矩）。
+	// _control_trim：控制零位点，即控制量在没有控制输入时的默认值。
+	// _mix：控制分配矩阵，用于将控制目标转换为执行器命令。
+	// _actuator_sp：计算得到的新执行器设置点。
 	_actuator_sp = _actuator_trim + _mix * (_control_sp - _control_trim);
 }

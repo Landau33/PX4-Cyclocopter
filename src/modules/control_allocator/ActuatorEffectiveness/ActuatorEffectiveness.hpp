@@ -1,44 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
-/**
- * @file ActuatorEffectiveness.hpp
- *
- * Interface for Actuator Effectiveness
- *
- * @author Julien Lecoeur <julien.lecoeur@gmail.com>
- */
-
 #pragma once
 
 #include <cstdint>
@@ -61,9 +20,9 @@ enum class ActuatorType {
 };
 
 enum class EffectivenessUpdateReason {
-	NO_EXTERNAL_UPDATE = 0,
-	CONFIGURATION_UPDATE = 1,
-	MOTOR_ACTIVATION_UPDATE = 2,
+	NO_EXTERNAL_UPDATE = 0, // 无外部更新
+	CONFIGURATION_UPDATE = 1, // 配置更新
+	MOTOR_ACTIVATION_UPDATE = 2, // 电机激活更新
 };
 
 class ActuatorEffectiveness
@@ -90,43 +49,43 @@ public:
 	using ActuatorVector = matrix::Vector<float, NUM_ACTUATORS>;
 
 	enum class FlightPhase {
-		HOVER_FLIGHT = 0,
-		FORWARD_FLIGHT = 1,
-		TRANSITION_HF_TO_FF = 2,
-		TRANSITION_FF_TO_HF = 3
+		HOVER_FLIGHT = 0, // 悬停飞行阶段
+		FORWARD_FLIGHT = 1, // 前飞阶段
+		TRANSITION_HF_TO_FF = 2, // 悬停到前飞过渡阶段
+		TRANSITION_FF_TO_HF = 3 // 前飞到悬停过渡阶段
 	};
 
 	struct Configuration {
 		/**
-		 * Add an actuator to the selected matrix, returning the index, or -1 on error
+		 * 向选定的矩阵中添加一个效应器，返回索引；如果失败，返回-1
 		 */
 		int addActuator(ActuatorType type, const matrix::Vector3f &torque, const matrix::Vector3f &thrust);
 
 		/**
-		 * Call this after manually adding N actuators to the selected matrix
+		 * 在手动向选定矩阵添加N个效应器后调用此函数
 		 */
 		void actuatorsAdded(ActuatorType type, int count);
 
 		int totalNumActuators() const;
 
-		/// Configured effectiveness matrix. Actuators are expected to be filled in order, motors first, then servos
+		/// 已配置的效果矩阵。执行器按顺序填充，先电机后舵机
 		EffectivenessMatrix effectiveness_matrices[MAX_NUM_MATRICES];
 
-		int num_actuators_matrix[MAX_NUM_MATRICES]; ///< current amount, and next actuator index to fill in to effectiveness_matrices
+		int num_actuators_matrix[MAX_NUM_MATRICES]; ///< 当前数量，也是下一个要填充到效应矩阵中的效应器索引
 		ActuatorVector trim[MAX_NUM_MATRICES];
 
 		ActuatorVector linearization_point[MAX_NUM_MATRICES];
 
 		int selected_matrix;
 
-		uint8_t matrix_selection_indexes[NUM_ACTUATORS * MAX_NUM_MATRICES];
-		int num_actuators[(int)ActuatorType::COUNT];
+		uint8_t matrix_selection_indexes[NUM_ACTUATORS * MAX_NUM_MATRICES]; // 矩阵选择索引
+		int num_actuators[(int)ActuatorType::COUNT]; // 不同类型效应器的数量
 	};
 
 	/**
-	 * Set the current flight phase
+	 * 设置当前飞行阶段
 	 *
-	 * @param Flight phase
+	 * @param 飞行阶段
 	 */
 	virtual void setFlightPhase(const FlightPhase &flight_phase)
 	{
@@ -134,13 +93,13 @@ public:
 	}
 
 	/**
-	 * Get the number of effectiveness matrices. Must be <= MAX_NUM_MATRICES.
-	 * This is expected to stay constant.
+	 * 获取效应矩阵的数量。必须小于等于MAX_NUM_MATRICES。
+	 * 这个值预计保持不变。
 	 */
 	virtual int numMatrices() const { return 1; }
 
 	/**
-	 * Get the desired allocation method(s) for each matrix, if configured as AUTO
+	 * 如果配置为AUTO，则获取每个矩阵所需的分配方法
 	 */
 	virtual void getDesiredAllocationMethod(AllocationMethod allocation_method_out[MAX_NUM_MATRICES]) const
 	{
@@ -150,7 +109,7 @@ public:
 	}
 
 	/**
-	 * Query if the roll, pitch and yaw columns of the mixing matrix should be normalized
+	 * 查询混合矩阵的横滚、俯仰和偏航列是否需要归一化
 	 */
 	virtual void getNormalizeRPY(bool normalize[MAX_NUM_MATRICES]) const
 	{
@@ -160,16 +119,16 @@ public:
 	}
 
 	/**
-	 * Get the control effectiveness matrix if updated
+	 * 如果已更新，获取控制效应矩阵
 	 *
-	 * @return true if updated and matrix is set
+	 * @return 如果已更新并设置矩阵，则返回true
 	 */
 	virtual bool getEffectivenessMatrix(Configuration &configuration, EffectivenessUpdateReason external_update) { return false;}
 
 	/**
-	 * Get the current flight phase
+	 * 获取当前飞行阶段
 	 *
-	 * @return Flight phase
+	 * @return 飞行阶段
 	 */
 	const FlightPhase &getFlightPhase() const
 	{
@@ -177,48 +136,48 @@ public:
 	}
 
 	/**
-	 * Display name
-	 */
+	* 显示名称
+	*/
 	virtual const char *name() const = 0;
 
 	/**
-	 * Callback from the control allocation, allowing to manipulate the setpoint.
-	 * Used to allocate auxiliary controls to actuators (e.g. flaps and spoilers).
+	 * 来自控制分配的回调，允许操作设定点。
+	 * 用于将辅助控制分配给效应器（例如襟翼和扰流板）。
 	 *
-	 * @param actuator_sp input & output setpoint
+	 * @param actuator_sp 输入和输出设定点
 	 */
 	virtual void allocateAuxilaryControls(const float dt, int matrix_index, ActuatorVector &actuator_sp) {}
 
 	/**
-	 * Callback from the control allocation, allowing to manipulate the setpoint.
-	 * This can be used to e.g. add non-linear or external terms.
-	 * It is called after the matrix multiplication and before final clipping.
-	 * @param actuator_sp input & output setpoint
+	 * 来自控制分配的回调，允许操作设定点。
+	 * 可用于添加非线性或外部项。
+	 * 它在矩阵乘法之后和最终裁剪之前调用。
+	 * @param actuator_sp 输入和输出设定点
 	 */
 	virtual void updateSetpoint(const matrix::Vector<float, NUM_AXES> &control_sp,
 				    int matrix_index, ActuatorVector &actuator_sp, const matrix::Vector<float, NUM_ACTUATORS> &actuator_min,
 				    const matrix::Vector<float, NUM_ACTUATORS> &actuator_max) {}
 
 	/**
-	 * Get a bitmask of motors to be stopped
+	 * 获取需要停止的电机的位掩码
 	 */
 	virtual uint32_t getStoppedMotors() const { return _stopped_motors_mask; }
 
 	/**
-	 * Fill in the unallocated torque and thrust, customized by effectiveness type.
-	 * Can be implemented for every type separately. If not implemented then the effectivenes matrix is used instead.
+	 * 填充未分配的扭矩和推力，由效应类型定制。
+	 * 可以为每种类型单独实现。如果没有实现，则使用效应矩阵代替。
 	 */
 	virtual void getUnallocatedControl(int matrix_index, control_allocator_status_s &status) {}
 
 	/**
-	 * Stops motors which are masked by stoppable_motors_mask and whose demanded thrust is zero
+	 * 停止由stoppable_motors_mask掩码标记且需求推力为零的电机
 	 *
-	 * @param stoppable_motors_mask mask of motors that should be stopped if there's no thrust demand
-	 * @param actuator_sp outcome of the allocation to determine if the motor should be stopped
+	 * @param stoppable_motors_mask 标记需要停止的电机的掩码
+	 * @param actuator_sp 分配结果，用于确定是否需要停止电机
 	 */
 	virtual void stopMaskedMotorsWithZeroThrust(uint32_t stoppable_motors_mask, ActuatorVector &actuator_sp);
 
 protected:
-	FlightPhase _flight_phase{FlightPhase::HOVER_FLIGHT};
-	uint32_t _stopped_motors_mask{0};
+	FlightPhase _flight_phase{FlightPhase::HOVER_FLIGHT}; // 当前飞行阶段，默认为悬停飞行
+	uint32_t _stopped_motors_mask{0}; // 停止的电机掩码
 };

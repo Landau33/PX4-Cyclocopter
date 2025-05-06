@@ -1,36 +1,3 @@
-/****************************************************************************
- *
- *   Copyright (c) 2021 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 #pragma once
 
 #include "ActuatorEffectiveness.hpp"
@@ -42,60 +9,63 @@ class ActuatorEffectivenessTilts : public ModuleParams, public ActuatorEffective
 {
 public:
 
-	static constexpr int MAX_COUNT = 4;
+	static constexpr int MAX_COUNT = 4; // 最大数量为4
 
 	enum class Control : int32_t {
-		// This matches with the parameter
-		None = 0,
-		Yaw = 1,
-		Pitch = 2,
-		YawAndPitch = 3,
+		// 此枚举值与参数匹配
+		None = 0,       // 无控制
+		Yaw = 1,        // 偏航控制
+		Pitch = 2,      // 俯仰控制
+		YawAndPitch = 3 // 偏航和俯仰控制
 	};
+
 	enum class TiltDirection : int32_t {
-		// This matches with the parameter
-		TowardsFront = 0,
-		TowardsRight = 90,
+		// 此枚举值与参数匹配
+		TowardsFront = 0, // 倾斜方向：向前
+		TowardsRight = 90 // 倾斜方向：向右
 	};
 
 	struct Params {
-		Control control;
-		float min_angle;
-		float max_angle;
-		TiltDirection tilt_direction;
+		Control control;         // 控制类型
+		float min_angle;         // 最小角度
+		float max_angle;         // 最大角度
+		TiltDirection tilt_direction; // 倾斜方向
 	};
 
-	ActuatorEffectivenessTilts(ModuleParams *parent);
-	virtual ~ActuatorEffectivenessTilts() = default;
+	ActuatorEffectivenessTilts(ModuleParams *parent); // 构造函数
+	virtual ~ActuatorEffectivenessTilts() = default;  // 默认析构函数
 
-	bool addActuators(Configuration &configuration);
+	bool addActuators(Configuration &configuration); // 添加执行器配置
 
-	const char *name() const override { return "Tilts"; }
+	const char *name() const override { return "Tilts"; } // 返回名称"Tilts"
 
-	int count() const { return _count; }
+	int count() const { return _count; } // 返回倾斜执行器的数量
 
-	const Params &config(int idx) const { return _params[idx]; }
+	const Params &config(int idx) const { return _params[idx]; } // 获取指定索引的配置参数
 
 	void updateTorqueSign(const ActuatorEffectivenessRotors::Geometry &geometry, bool disable_pitch = false);
+	// 更新扭矩符号，可选择禁用俯仰控制
 
-	bool hasYawControl() const;
+	bool hasYawControl() const; // 判断是否有偏航控制
 
 	float getYawTorqueOfTilt(int tilt_index) const { return _torque[tilt_index](2); }
+	// 获取指定倾斜执行器的偏航扭矩（Z轴分量）
 
 private:
-	void updateParams() override;
+	void updateParams() override; // 更新参数
 
 	struct ParamHandles {
-		param_t control;
-		param_t min_angle;
-		param_t max_angle;
-		param_t tilt_direction;
+		param_t control;         // 控制参数句柄
+		param_t min_angle;       // 最小角度参数句柄
+		param_t max_angle;       // 最大角度参数句柄
+		param_t tilt_direction;  // 倾斜方向参数句柄
 	};
 
-	ParamHandles _param_handles[MAX_COUNT];
-	param_t _count_handle;
+	ParamHandles _param_handles[MAX_COUNT]; // 参数句柄数组
+	param_t _count_handle;                  // 数量参数句柄
 
-	Params _params[MAX_COUNT] {};
-	int _count{0};
+	Params _params[MAX_COUNT] {}; // 配置参数数组
+	int _count{0};                // 当前倾斜执行器数量
 
-	matrix::Vector3f _torque[MAX_COUNT] {};
+	matrix::Vector3f _torque[MAX_COUNT] {}; // 每个倾斜执行器的扭矩向量
 };
