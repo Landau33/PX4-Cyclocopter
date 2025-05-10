@@ -30,6 +30,8 @@ public:
 
 	void getUnallocatedControl(int matrix_index, control_allocator_status_s &status) override;
 
+	float yaw_sp = 0.f;
+
 protected:
 	ActuatorVector _tilt_offsets;
 	ActuatorEffectivenessRotors _cc_rotors;

@@ -41,7 +41,6 @@ ActuatorEffectivenessCCServo::getEffectivenessMatrix(Configuration &configuratio
 			_tilt_offsets(_first_tilt_idx + i) = trim; // 设置对应的倾斜偏移量
 		}
 	}
-
 	return (rotors_added_successfully && tilts_added_successfully); // 返回是否成功添加电机和倾斜机构
 }
 
@@ -49,6 +48,10 @@ void ActuatorEffectivenessCCServo::updateSetpoint(const matrix::Vector<float, NU
 		int matrix_index, ActuatorVector &actuator_sp, const matrix::Vector<float, NUM_ACTUATORS> &actuator_min,
 		const matrix::Vector<float, NUM_ACTUATORS> &actuator_max)
 {
+	if (yaw_sp < 0.001f) {
+		yaw_sp = control_sp(ControlAxis::YAW);
+	}
+
 	actuator_sp += _tilt_offsets; // 将倾斜偏移量添加到效应器设定点中
 	// TODO: 动态矩阵更新
 
@@ -58,8 +61,23 @@ void ActuatorEffectivenessCCServo::updateSetpoint(const matrix::Vector<float, NU
 	for (int i = 0; i < _cc_tilts.count(); ++i) { // 遍历所有倾斜机构
 		// std::printf("执行器sp %d: (%.2f)\n", i, static_cast<double>(actuator_sp(i)));
 		// std::printf("控制向量sp %d: (%.2f)\n", i, static_cast<double>(control_sp(i)));
-		int yaw_coef = 0.1;
-		actuator_sp(_first_tilt_idx + i) = control_sp(ControlAxis::YAW) * yaw_coef + _tilt_offsets(3 + i);
+		int yaw_coef = 5;
+		int pitch_coef = 5;
+		actuator_sp(_first_tilt_idx + i) = (control_sp(ControlAxis::YAW) - yaw_sp) * yaw_coef + _tilt_offsets(_first_tilt_idx + i);
+
+		float pitch_control_threshold = 0.01f;
+		if (control_sp(ControlAxis::PITCH) > pitch_control_threshold){
+			// std::printf("p控制向量: (%.6f)\n", static_cast<double>(control_sp(ControlAxis::PITCH)));
+			if (i == _first_tilt_idx-4 || i == _first_tilt_idx-1) {
+				actuator_sp(_first_tilt_idx + i) -= control_sp(ControlAxis::PITCH) * pitch_coef * (control_sp(ControlAxis::PITCH)-pitch_control_threshold);
+				// std::printf("舵机 %d: (%.6f)\n", _first_tilt_idx + i, static_cast<double>(actuator_sp(_first_tilt_idx + i)));
+			} else
+			{
+				actuator_sp(_first_tilt_idx + i) += control_sp(ControlAxis::PITCH) * pitch_coef * (control_sp(ControlAxis::PITCH)-pitch_control_threshold);
+				// std::printf("_舵机 %d: (%.6f)\n", _first_tilt_idx + i, static_cast<double>(actuator_sp(_first_tilt_idx + i)));
+			}
+		}
+
 		if (_cc_tilts.getYawTorqueOfTilt(i) > FLT_EPSILON) { // 如果当前倾斜机构产生正向偏航扭矩
 			if (yaw_saturated_positive && actuator_sp(i + _first_tilt_idx) < actuator_max(i + _first_tilt_idx) - FLT_EPSILON) {
 				yaw_saturated_positive = false; // 如果未达到最大值，则标记正向未饱和
