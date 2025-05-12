@@ -68,7 +68,14 @@ then
 	. ${R}etc/init.d/rc.uuv_apps
 fi
 
-
+#
+# Cyclocopter setup
+#
+if [ $VEHICLE_TYPE = cc ]
+then
+	# Start Cyclocopter apps.
+	. ${R}etc/init.d/rc.cc_apps
+fi
 
 #
 # Generic setup (autostart ID not found).

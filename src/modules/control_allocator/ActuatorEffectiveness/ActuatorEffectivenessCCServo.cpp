@@ -48,7 +48,7 @@ void ActuatorEffectivenessCCServo::updateSetpoint(const matrix::Vector<float, NU
 		int matrix_index, ActuatorVector &actuator_sp, const matrix::Vector<float, NUM_ACTUATORS> &actuator_min,
 		const matrix::Vector<float, NUM_ACTUATORS> &actuator_max)
 {
-	if (yaw_sp < 0.001f) {
+	if (abs(yaw_sp) < 0.001f) {
 		yaw_sp = control_sp(ControlAxis::YAW);
 	}
 
